@@ -2,26 +2,62 @@ import React, { ChangeEvent } from "react";
 import { Button, Box, Alert, Grid, Typography, TextField, Chip, 
     Dialog, DialogTitle, List, ListItem, ListItemText, DialogActions, 
     IconButton, DialogContent, Snackbar, CircularProgress,
-    Divider} from '@mui/material';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+    Divider,TableContainer,Paper,Table,TableHead,TableRow,
+    TableCell,TableBody,FormControlLabel,Checkbox} from '@mui/material';
+import { useNavigate, useParams} from 'react-router-dom';
+import api from "../api";
 import { useEffect, useState } from 'react';
 import { FoodExternal } from "../interfaces/foodExternal";
 import { useForm } from "react-hook-form";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AddAPhotoRoundedIcon from '@mui/icons-material/AddAPhotoRounded';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
+import NoPhoto from "../../public/no-photo.png"
 
 type Allergen = { id: string; name: string};
 type Additive = { id: string; name: string};
+type FormValues = {
+    id: string | undefined;
+    product_name: string;
+    brands: string;
+    quantity: string;
+    serving_size: string;
+    ingredients_text_es: string;
+    allergens: string;
+    traces: string;
+    additives: string;
+    nutriment_energy: number|string;
+    nutriment_energy_unit: string;
+    nutriment_proteins: number|string;
+    nutriment_proteins_unit: string;
+    nutriment_fat: number|string;
+    nutriment_fat_unit: string;
+    "nutriment_saturated-fat": number|string;
+    "nutriment_saturated-fat_unit": string;
+    "nutriment_monounsaturated-fat": number|string;
+    "nutriment_monounsaturated-fat_unit": string;
+    "nutriment_polyunsaturated-fat": number|string;
+    "nutriment_polyunsaturated-fat_unit": string;
+    "nutriment_trans-fat": number|string;
+    "nutriment_trans-fat_unit": string;
+    nutriment_cholesterol: number|string;
+    nutriment_cholesterol_unit: string;
+    nutriment_carbohydrates: number|string;
+    nutriment_carbohydrates_unit: string;
+    nutriment_sugars: number|string;
+    nutriment_sugars_unit: string;
+    nutriment_salt: number|string;
+    nutriment_salt_unit: string;
+    nutrition_data_per: string;
+  };
 
 const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) => {
     const { id } = useParams()
     const navigate = useNavigate()
-    const additivesURL = "http://192.168.100.6:8080/submissions-additives"
-    const allergensURL = "http://192.168.100.6:8080/submissions-allergens"
-    const foodURL = "http://192.168.100.6:8080/submissions-food"
-    const submissionsURL = "http://192.168.100.6:8080/submissions"
+    const additivesURL = "/submissions-additives"
+    const allergensURL = "/submissions-allergens"
+    const foodURL = "/submissions-food"
+    const submissionsURL = "/submissions"
     const [foodData, setFoodData] = useState<FoodExternal>()
     const [allergensAll, setAllergensAll] = useState<Allergen[]>([])
     const [allergensTags, setAllergensTags] = useState<Allergen[]>([])
@@ -46,69 +82,165 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     const [nutritionFile, setNutritionFile] = useState<File | null>(null);
     const [nutritionPreview, setNutritionPreview] = useState<string | null>(null);
     const [isSending, setIsSending] = useState(false)
-    const form = useForm<FoodExternal>({
+    const [submissionType, setSubmissionType] = useState("edit")
+    const [foodOldImages, setFoodOldImages] = useState({front: "", ingredients: "", nutrition: ""})
+    const [selectedImage, setSelectedImage] = useState<string|null>(null)
+    const [noNutrition, setNoNutrition] = useState(false)
+    const [allDone, setAllDone] = useState(false)
+    const form = useForm<FormValues>({
         mode: "onBlur",
         reValidateMode: "onBlur",
         defaultValues: {
-            id: "0",
-            product_name: "nombre",
-            brands: "marcas",
-            quantity: "cantidad",
-            serving_size: "porción",
-            ingredients_text_es: "ingredientes",
+            id: id,
             allergens: "",
             traces: "",
-            additives: ""
+            additives: "",
+            nutriment_energy: "",
+            nutriment_energy_unit: "kcal",
+            nutriment_proteins:"",
+            nutriment_proteins_unit: "g",
+            nutriment_fat:"",
+            nutriment_fat_unit: "g",
+            "nutriment_saturated-fat": "",
+            "nutriment_saturated-fat_unit": "g",
+            "nutriment_monounsaturated-fat": "",
+            "nutriment_monounsaturated-fat_unit": "g",
+            "nutriment_polyunsaturated-fat": "",
+            "nutriment_polyunsaturated-fat_unit": "g",
+            "nutriment_trans-fat": "",
+            "nutriment_trans-fat_unit": "g",
+            nutriment_cholesterol: "",
+            nutriment_cholesterol_unit: "mg",
+            nutriment_carbohydrates: "",
+            nutriment_carbohydrates_unit: "g",
+            nutriment_sugars: "",
+            nutriment_sugars_unit: "g",
+            nutriment_salt: "",
+            nutriment_salt_unit: "mg",
+            nutrition_data_per: "100g"
         }
     })
+    const nutrition : Array<{ label: string; field: keyof FormValues }> = [
+        { label: "Energía (kcal)", field: "nutriment_energy" },
+        { label: "Proteínas (g)", field: "nutriment_proteins" },
+        { label: "Grasa total (g)", field: "nutriment_fat" },
+        { label: "G. Saturadas (g)", field: "nutriment_saturated-fat" },
+        { label: "G. Monoinsat (g).", field: "nutriment_monounsaturated-fat" },
+        { label: "G. Poliinsat (g).", field: "nutriment_polyunsaturated-fat" },
+        { label: "G. Trans (g)", field: "nutriment_trans-fat" },
+        { label: "Colesterol (mg)", field: "nutriment_cholesterol" },
+        { label: "H. de C. Disp. (g)", field: "nutriment_carbohydrates" },
+        { label: "Azúcares totales (g)", field: "nutriment_sugars" },
+        { label: "Sodio (mg)", field: "nutriment_salt" },
+      ]
     const { register, handleSubmit, formState, control, getValues, watch, setValue } = form
     const {errors} = formState    
+    type NutrientField = keyof FormValues;
 
     useEffect(()=>{
-        axios.get(allergensURL, {
+        document.title = "Edición de alimento - EyesFood";
+        let searchParams = new URLSearchParams(location.search);
+        let newFood = searchParams.get("n") || null
+        if (newFood){
+            setSubmissionType("new")
+        }
+        api.get(allergensURL, {
             withCredentials: true,
             headers: {
                 Authorization: "Bearer " + window.localStorage.token
             }
         })
         .then(response => {
-            console.log(response.data)
             setAllergensAll(response.data)
         })
     },[])
 
     useEffect(()=>{
-        axios.get(additivesURL, {
+        api.get(additivesURL, {
             withCredentials: true,
             headers: {
                 Authorization: "Bearer " + window.localStorage.token
             }
         })
         .then(response => {
-            console.log(response.data)
             setAdditivesAll(response.data)
         })
     },[allergensAll])
 
     useEffect(()=>{
-       axios.get(foodURL + "/" + id, {
+       api.get(foodURL + "/" + id, {
         withCredentials: true,
         headers: {
             Authorization: "Bearer " + window.localStorage.token
         }
        })
        .then((response)=>{
-            console.log(response.data)
-            let food = JSON.parse(response.data.foodData)
-            setValue("id", food.id || "");
-            setValue("product_name", food.product_name || "");
-            setValue("quantity", food.quantity || "");
-            setValue("brands", food.brands || "");
+            let food = response.data.foodData
+            setFoodData(food)
+            form.reset(food)
+            // setValue("id", food.id || "");
+            // setValue("product_name", food.product_name || "");
+            // setValue("quantity", food.quantity || "");
+            // setValue("brands", food.brands || "");
             setValue("ingredients_text_es", food.ingredients_text || "");
-            setValue("serving_size", food.serving_size || "");
-            setValue("allergens", food.allergens_tags.join(", ") || "")
-            setValue("traces", food.traces_tags.join(", ") || "")
-            setValue("additives", food.additives_tags.join(", ") || "")
+            // setValue("serving_size", food.serving_size || "");
+            // setValue("allergens", food.allergens_tags.join(", ") || "")
+            // setValue("traces", food.traces_tags.join(", ") || "")
+            // setValue("additives", food.additives_tags.join(", ") || "")
+            let oldImages = {front: "", ingredients: "", nutrition: ""}
+            if(food.selected_images){
+                food.selected_images.front?.display
+                        ? oldImages.front = food.selected_images.front.display.es
+                                            || food.selected_images.front.display.en 
+                                            || "noPhoto"
+                        : oldImages.front = "noPhoto"
+                food.selected_images.ingredients?.display
+                        ? oldImages.ingredients = food.selected_images.ingredients.display.es
+                                            || food.selected_images.ingredients.display.en 
+                                            || "noPhoto"
+                        : oldImages.ingredients = "noPhoto"
+
+                food.selected_images.nutrition?.display
+                        ? oldImages.nutrition = food.selected_images.nutrition.display.es
+                                            || food.selected_images.nutrition.display.en 
+                                            || "noPhoto"
+                        : oldImages.nutrition = "noPhoto"
+            }
+            setFoodOldImages(oldImages)
+
+            food.nutriments["energy-kcal_100g"]
+                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
+                :null
+            food.nutriments.proteins_100g
+                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
+                :null
+            food.nutriments.fat_100g
+                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
+                :null
+            food.nutriments["saturated-fat_100g"]
+                ? setValue("nutriment_saturated-fat", food.nutriments["saturated-fat_100g"])
+                :null
+            food.nutriments["monounsaturated-fat_100g"]
+                ? setValue("nutriment_monounsaturated-fat", food.nutriments["monounsaturated-fat_100g"])
+                :null
+            food.nutriments["polyunsaturated-fat_100g"]
+                ? setValue("nutriment_polyunsaturated-fat", food.nutriments["polyunsaturated-fat_100g"])
+                :null
+            food.nutriments["trans-fat_100g"]
+                ? setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"])
+                :null
+            food.nutriments["cholesterol_100g"]
+                ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_100g"]*1000)
+                :null
+            food.nutriments["carbohydrates_100g"]
+                ? setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"])
+                :null
+            food.nutriments["sugars_100g"]
+                ? setValue("nutriment_sugars", food.nutriments["sugars_100g"])
+                :null
+            food.nutriments["salt_100g"]
+                ? setValue("nutriment_salt", food.nutriments["salt_100g"]*1000)
+                :null
 
             const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 
                 allergensAll.find(allergen => allergen.id === tagId)
@@ -126,6 +258,12 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             setTracesTags(initialTracesTags || [])
             setAdditivesTags(initialAdditivesTags || [])
         }) 
+        .catch(error => {
+            console.log(error)
+        })
+        .finally(()=>{
+            setAllDone(true)
+        })
     },[additivesAll])
 
     useEffect(() => {
@@ -134,7 +272,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             newAllergens.push(allergen.id)
         })
         setValue("allergens", newAllergens.join(", "))
-        console.log(newAllergens)
     }, [allergensTags, setValue]);
 
     useEffect(() => {
@@ -143,7 +280,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             newTraces.push(allergen.id)
         })
         setValue("traces", newTraces.join(", "))
-        console.log(newTraces)
     }, [tracesTags, setValue]);
 
     useEffect(() => {
@@ -152,7 +288,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             newAdditives.push(additive.id)
         })
         setValue("additives", newAdditives.join(", "))
-        console.log(newAdditives)
+
     }, [additivesTags, setValue]);
 
     useEffect(() => {
@@ -188,30 +324,30 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         );
       }, [searchTerm, filteredAdditives]);
 
-    const onSubmit = (data: FoodExternal) => {
+    const onSubmit = (data: any) => {
         setIsSending(true)
-        console.log(data)
+        let filteredData = getFilteredFormData(data)
         const formData = new FormData();
         if (window.localStorage.id){
             formData.append("idFood", data.id)
             formData.append("idUser", window.localStorage.id)
-            formData.append("type", "edit")
+            formData.append("type", submissionType)
             formData.append("state", "pending")
-            formData.append("foodData", JSON.stringify(data))
-            formData.append("imagesFolder", Date.now().toString())
+            formData.append("foodData", JSON.stringify(filteredData))
+            formData.append("imagesFolder",`${data.product_name}-${Date.now().toString()}`)
             if (ingredientsFile) {
-                formData.append("imgupload_ingredients", ingredientsFile);
+                formData.append("ingredients", ingredientsFile);
             }
             if (frontFile) {
-                formData.append("imgupload_front", frontFile);
+                formData.append("front", frontFile);
             }
             if (nutritionFile) {
-                formData.append("imgupload_nutrition", nutritionFile);
+                formData.append("nutrition", nutritionFile);
             }
             
             console.log(formData)
             try{
-                axios.post(submissionsURL, formData,{
+                api.post(submissionsURL, formData,{
                     withCredentials: true,
                     headers: {
                         "Content-Type": "multipart/form-data",
@@ -220,7 +356,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 })
                 .then(response => {
                     if (response.status === 200){
-                        console.log("Aporte subido")
+                        
                         setSnackbarMsg("Aporte enviado! Te avisaremos cuando sea aprobado o rechazado.")
                     }
                     else if (response.status === 400){
@@ -242,12 +378,16 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             
         }    
         else{
-            console.log("no hay usuario")
+            
             setSnackbarMsg("Error: Usuario no identificado")
-        }
-        
-        
+        } 
     }
+
+    const getFilteredFormData = (formData: FormValues) => {
+        return Object.fromEntries(
+            Object.entries(formData).filter(([_, value]) => value !== "")
+        );
+    };
 
     const handleAllergensOpen = () => {
         setAllergensOpen(true);
@@ -364,7 +504,15 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         setNutritionPreview(null);
     };
 
-    return <Grid container display="flex" 
+    const handleOpenImage = (link:string) => {
+        setSelectedImage(link)
+    }
+
+    const handleCloseImage = () => {
+        setSelectedImage(null)
+    }
+
+    return ( allDone && <Grid container display="flex" 
                 flexDirection="row" 
                 justifyContent="space-evenly"
                 alignItems="stretch"
@@ -393,7 +541,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                   }}
                 >
                     <Typography variant='h5' width="100%" sx={{py:0.5}} color= "primary.contrastText">
-                        Edición
+                        {submissionType==="edit"?<>Edición</>:<>Nuevo alimento</>}
                     </Typography>
                 </Box>
                 <Box
@@ -434,8 +582,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         type="text" 
                         variant="standard" 
                         fullWidth
-                        {...register("quantity", {required: "Ingresar cantidad"})}
+                        {...register("quantity")}
                         error={!!errors.quantity}
+                        
                         helperText = {errors.quantity?.message}
                         sx={{ mb: 2 }}
                         />
@@ -445,9 +594,10 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         type="text" 
                         variant="standard" 
                         fullWidth
-                        {...register("serving_size", {required: "Ingresar cantidad por porción"})}
+                        {...register("serving_size")}
                         error={!!errors.serving_size}
                         helperText = {errors.serving_size?.message}
+                        
                         sx={{ mb: 2 }}
                         />
                         <TextField 
@@ -456,8 +606,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         type="text" 
                         variant="standard" 
                         fullWidth
-                        {...register("brands", {required: "Ingresar marca"})}
+                        {...register("brands")}
                         error={!!errors.brands}
+                        
                         helperText = {errors.brands?.message}
                         sx={{ mb: 2 }}
                         />
@@ -472,6 +623,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         {...register("ingredients_text_es")}
                         error={!!errors.ingredients_text_es}
                         helperText={errors.ingredients_text_es?.message}
+                        
                         fullWidth // Ensures the TextField takes up the full width of its container
                         sx={{ mb: 2 }}
                         />
@@ -666,6 +818,62 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         </Snackbar>
                         <Divider />
                         <Typography variant='h6' my={2}>
+                            Información nutricional
+                        </Typography>
+
+                        <FormControlLabel 
+                        control={<Checkbox onChange={(e) => setNoNutrition(e.target.checked)}/>} 
+                        label="No sale en el envase" 
+                        />
+                        
+                        {!noNutrition && 
+                        <Box sx={{width:"100%", display: "flex", justifyContent: "center"}}>
+                            <TableContainer component={Paper} sx={{ marginBottom: 2, width:"100%" }}>
+                                <Table aria-label="user stats table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{bgcolor: "primary.main"}}>
+                                                <Typography variant="subtitle1" sx={{color: "primary.contrastText"}}>
+                                                    Item
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell sx={{bgcolor: "primary.main"}} align="center">
+                                                <Typography variant="subtitle1" sx={{color: "primary.contrastText"}}>
+                                                    100 g / 100 ml
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {nutrition.map((nutriment, index)=> (
+                                            <TableRow key={nutriment.field} sx={{ height: 30,  bgcolor: index % 2 === 0 ? "transparent" : "secondary.light"  }}>
+                                            <TableCell sx={{ padding: '4px 8px' }}>
+                                            <Typography>{nutriment.label}</Typography>
+                                            </TableCell>
+                                            <TableCell align="center" sx={{ padding: '4px 8px' }}>
+                                                <TextField
+                                                variant="outlined"
+                                                sx={{width:80, "& .MuiInputBase-input": { fontSize: 14, height: 10, padding: 1 }}}
+                                                {...register(nutriment.field, { 
+                                                    value: getValues(nutriment.field) || ""
+                                                })}
+                                                onChange={(e) => setValue(nutriment.field, e.target.value.replace(",", "."))}
+                                                inputProps={{ 
+                                                    type: "number", // Set type to text for custom validation
+                                                    pattern: "[0-9]*" // Optional: hints to mobile browsers to show numeric keyboard
+                                                }}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+                        }
+                        
+                        <Divider />
+                        <Typography variant='h6' my={2}>
                             Imágenes
                         </Typography>
                         <Box sx={{
@@ -683,6 +891,62 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                             }}>
                                 <Typography variant="subtitle1">
                                     Ingredientes
+                                </Typography>
+                                    <img src={foodOldImages.ingredients}
+                                        alt="Sin imágen" 
+                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                        onClick={()=>handleOpenImage(foodOldImages.ingredients)}
+                                />
+                            </Box>
+                            
+                            <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%"
+                            }}>
+                                <Typography variant="subtitle1">
+                                    Frente
+                                </Typography>
+                                    <img src={foodOldImages.front}
+                                        alt="Sin imágen" 
+                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                        onClick={()=>handleOpenImage(foodOldImages.front)}
+                                />
+                            </Box>
+                            
+                            <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%",
+                            }}>
+                                <Typography variant="subtitle1">
+                                    Nutrición
+                                </Typography>
+                                    <img src={foodOldImages.nutrition}
+                                        alt="Sin imágen" 
+                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                        onClick={()=>handleOpenImage(foodOldImages.nutrition)}
+                                />
+                            </Box>
+                            
+                        </Box>
+                        <Box sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            width:"100%",
+                            my:2
+                        }}>
+                            <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%"
+                            }}>
+                                <Typography variant="subtitle1">
+                                    Nueva imágen
                                 </Typography>
                                 {ingredientsPreview && (<div>
                                     <img src={ingredientsPreview} alt="Ingredientes" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
@@ -711,7 +975,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 width:"100%"
                             }}>
                                 <Typography variant="subtitle1">
-                                    Frente
+                                Nueva imágen
                                 </Typography>
                                 {frontPreview && (<div>
                                     <img src={frontPreview} alt="Frente" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
@@ -740,7 +1004,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 width:"100%"
                             }}>
                                 <Typography variant="subtitle1">
-                                    Nutrición
+                                Nueva imágen
                                 </Typography>
                                 {nutritionPreview && (<div>
                                     <img src={nutritionPreview} alt="Nutrición" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
@@ -772,6 +1036,25 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         >
                             {isSending ? 'Guardando...' : 'Guardar Cambios'}
                         </Button>
+                        <Dialog
+                        open={Boolean(selectedImage)}
+                        onClose={handleCloseImage}
+                        fullWidth
+                        maxWidth="md"
+                    >
+                            <DialogContent dividers style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+                                <img
+                                    src={selectedImage || NoPhoto}
+                                    alt="Full-size"
+                                    style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                                />
+                            </DialogContent>
+                            <DialogActions>
+                                <Button variant="contained" onClick={handleCloseImage}>
+                                    Cerrar
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
 
                         <Snackbar
                             open={resultOpen}
@@ -787,7 +1070,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 
             
             </Grid>
-  
+    )
 }
 
 export default FoodEdit

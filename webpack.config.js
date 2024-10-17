@@ -7,8 +7,12 @@ module.exports = {
   mode: "development",
   devServer: {
     port: 4005, // Modificar
-    host: "192.168.100.6",
+    host: "localhost",
+    allowedHosts: 'all',
     historyApiFallback: true, // Necesario para que funcione React Router
+    client: {
+            overlay: false
+          }
   },
   module: {
     rules: [
@@ -61,6 +65,9 @@ module.exports = {
       filename: "remoteEntry.js",
       exposes: {
         "./FoodEdit": "./src/components/FoodEdit",
+        "./FoodEditList": "./src/components/FoodEditList",
+        "./FoodEditUserList": "./src/components/FoodEditUserList",
+        "./FoodEditHistory": "./src/components/FoodEditHistory",
       },
       shared: {
         ...dependencies,
