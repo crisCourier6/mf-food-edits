@@ -46,8 +46,8 @@ type FormValues = {
     nutriment_carbohydrates_unit: string;
     nutriment_sugars: number|string;
     nutriment_sugars_unit: string;
-    nutriment_salt: number|string;
-    nutriment_salt_unit: string;
+    nutriment_sodium: number|string;
+    nutriment_sodium_unit: string;
     nutrition_data_per: string;
   };
 
@@ -115,8 +115,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             nutriment_carbohydrates_unit: "g",
             nutriment_sugars: "",
             nutriment_sugars_unit: "g",
-            nutriment_salt: "",
-            nutriment_salt_unit: "mg",
+            nutriment_sodium: "",
+            nutriment_sodium_unit: "mg",
             nutrition_data_per: "100g"
         }
     })
@@ -131,7 +131,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         { label: "Colesterol (mg)", field: "nutriment_cholesterol" },
         { label: "H. de C. Disp. (g)", field: "nutriment_carbohydrates" },
         { label: "Azúcares totales (g)", field: "nutriment_sugars" },
-        { label: "Sodio (mg)", field: "nutriment_salt" },
+        { label: "Sodio (mg)", field: "nutriment_sodium" },
       ]
     const { register, handleSubmit, formState, control, getValues, watch, setValue } = form
     const {errors} = formState    
@@ -183,6 +183,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             // setValue("quantity", food.quantity || "");
             // setValue("brands", food.brands || "");
             setValue("ingredients_text_es", food.ingredients_text || "");
+            setValue("nutriment_cholesterol_unit", "mg")
+            setValue("nutriment_sodium_unit", "mg")
             // setValue("serving_size", food.serving_size || "");
             // setValue("allergens", food.allergens_tags.join(", ") || "")
             // setValue("traces", food.traces_tags.join(", ") || "")
@@ -229,8 +231,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             food.nutriments["trans-fat_100g"]
                 ? setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"])
                 :null
-            food.nutriments["cholesterol_100g"]
-                ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_100g"]*1000)
+            food.nutriments["cholesterol_value"]
+                ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_value"])
                 :null
             food.nutriments["carbohydrates_100g"]
                 ? setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"])
@@ -238,8 +240,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             food.nutriments["sugars_100g"]
                 ? setValue("nutriment_sugars", food.nutriments["sugars_100g"])
                 :null
-            food.nutriments["salt_100g"]
-                ? setValue("nutriment_salt", food.nutriments["salt_100g"]*1000)
+            food.nutriments["sodium_value"]
+                ? setValue("nutriment_sodium", food.nutriments["sodium_value"])
                 :null
 
             const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 

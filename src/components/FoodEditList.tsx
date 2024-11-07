@@ -174,17 +174,17 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     const handleEdit = (edit: any) => {
         setSelectedEdit(edit);
         setNutrition([
-            { label: "Energía (kcal)", value: edit.foodData.nutriment_energy || 0 },
-            { label: "Proteínas (g)", value: edit.foodData.nutriment_proteins || 0 },
-            { label: "Grasa total (g)", value: edit.foodData.nutriment_fat || 0 },
-            { label: "G. Saturadas (g)", value: edit.foodData["nutriment_saturated-fat"] || 0 },
-            { label: "G. Monoinsat. (g)", value: edit.foodData["nutriment_monounsaturated-fat"] || 0 },
-            { label: "G. Poliinsat. (g)", value: edit.foodData["nutriment_polyunsaturated-fat"] || 0 },
-            { label: "G. Trans (g)", value: edit.foodData["nutriment_trans-fat"] || 0 },
-            { label: "Colesterol (mg)", value: edit.foodData.nutriment_cholesterol || 0 },
-            { label: "H. de C. Disp. (g)", value: edit.foodData.nutriment_carbohydrates || 0 },
-            { label: "Azúcares totales (g)", value: edit.foodData.nutriment_sugars || 0 },
-            { label: "Sodio (mg)", value: edit.foodData.nutriment_salt || 0 },
+            { label: "Energía (kcal)", value: edit.foodData.nutriment_energy || "" },
+            { label: "Proteínas (g)", value: edit.foodData.nutriment_proteins || "" },
+            { label: "Grasa total (g)", value: edit.foodData.nutriment_fat || "" },
+            { label: "G. Saturadas (g)", value: edit.foodData["nutriment_saturated-fat"] || "" },
+            { label: "G. Monoinsat. (g)", value: edit.foodData["nutriment_monounsaturated-fat"] || "" },
+            { label: "G. Poliinsat. (g)", value: edit.foodData["nutriment_polyunsaturated-fat"] || "" },
+            { label: "G. Trans (g)", value: edit.foodData["nutriment_trans-fat"] || "" },
+            { label: "Colesterol (mg)", value: edit.foodData.nutriment_cholesterol || "" },
+            { label: "H. de C. Disp. (g)", value: edit.foodData.nutriment_carbohydrates || "" },
+            { label: "Azúcares totales (g)", value: edit.foodData.nutriment_sugars || "" },
+            { label: "Sodio (mg)", value: edit.foodData.nutriment_sodium || "" },
           ])  
         const initialAllergensTags = edit.foodData.allergens?.split(", ").map((tagId: string) => 
             allergensAll.find(allergen => allergen.id === tagId)

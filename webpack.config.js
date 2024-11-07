@@ -7,7 +7,7 @@ module.exports = {
   mode: "development",
   devServer: {
     port: 4005, // Modificar
-    host: "localhost",
+    host: "0.0.0.0",
     allowedHosts: 'all',
     historyApiFallback: true, // Necesario para que funcione React Router
     client: {
