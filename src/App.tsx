@@ -7,7 +7,7 @@ import FoodEdit from "./components/FoodEdit";
 function App() {
   return (
     <div className="App">
-      <Router>
+      <Router basename="/mf-food-edits">
           <Routes>
               <Route path="/food-edit" element={<FoodEdit />}/>
               
