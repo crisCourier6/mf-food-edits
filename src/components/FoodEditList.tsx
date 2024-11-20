@@ -18,7 +18,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     const editsURL = "/submissions"
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
-    const imagesURL = "http://192.168.100.6:3004/uploads"
+    const imagesURL = process.env.REACT_APP_IMAGES_URL
     const [edits, setEdits] = useState<UserEditsFood[]>([])
     const [reason, setReason] = useState("")
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -64,33 +64,28 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     },[allergensAll])
 
     useEffect(()=>{
-        try {
-            api.get(editsURL, {
-                withCredentials: true,
-                headers: {
-                    Authorization: "Bearer " + window.localStorage.token
+        api.get(editsURL, {
+            withCredentials: true,
+            headers: {
+                Authorization: "Bearer " + window.localStorage.token
+            }
+        })
+        .then((res)=>{
+            const updatedFoodEdits = res.data.map((item: any) => {
+                // Parse foodData from JSON string to an object
+                // Return a new object with parsed foodData
+                return { ...item, 
+                    createdAt: new Date(item.createdAt),
+                    judgedAt: new Date(item.judgedAt)
                 }
-            })
-            .then((res)=>{
-                const updatedFoodEdits = res.data.map((item: any) => {
-                    // Parse foodData from JSON string to an object
-                    // Return a new object with parsed foodData
-                    return { ...item, 
-                        createdAt: new Date(item.createdAt),
-                        judgedAt: new Date(item.judgedAt)
-                    }
-                });
-                const sortedData = updatedFoodEdits.sort((a:UserEditsFood,b:UserEditsFood) => 
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-                )
-                setEdits(sortedData)
-                  
-            })
-            .catch(error => console.log(error.response))
-        }
-        catch (error){
-            console.log(error)
-        }
+            });
+            const sortedData = updatedFoodEdits.sort((a:UserEditsFood,b:UserEditsFood) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )
+            setEdits(sortedData)
+                
+        })
+        .catch(error => console.log(error.response))
     },[additivesAll])
 
     const columns: GridColDef[] = [
@@ -504,11 +499,22 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                     <Typography variant="subtitle1">
                                         Ingredientes
                                     </Typography>
+                                    <button 
+                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/ingredients.jpg`)}
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/ingredients.jpg`}
                                          alt="Ingredientes" 
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/ingredients.jpg`)}
+                                        
                                     />
+                                    </button>
                                 </Box>
                                 
                                 <Box sx={{
@@ -520,11 +526,22 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                     <Typography variant="subtitle1">
                                         Frente
                                     </Typography>
+                                    <button 
+                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/front.jpg`)}
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/front.jpg`}
                                          alt="Frente" 
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/front.jpg`)}
+                                         
                                     />
+                                    </button>
                                 </Box>
                                 
                                 <Box sx={{
@@ -536,11 +553,22 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                     <Typography variant="subtitle1">
                                         Nutrición
                                     </Typography>
+                                    <button 
+                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/nutrition.jpg`)}
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/nutrition.jpg`}
                                          alt="Nutrición" 
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                         onClick={()=>handleOpenImage(`${imagesURL}/${selectedEdit.imagesFolder}/nutrition.jpg`)}
+                                         
                                     />
+                                    </button>
                                 </Box>
                                 
                             </Box>

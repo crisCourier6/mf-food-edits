@@ -62,6 +62,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       "process.env.REACT_APP_GATEWAY_URL": JSON.stringify(process.env.REACT_APP_GATEWAY_URL),
+      "process.env.REACT_APP_IMAGES_URL" : JSON.stringify(process.env.REACT_APP_IMAGES_URL)
     }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",

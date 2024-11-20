@@ -207,40 +207,48 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 : oldImages.nutrition = "noPhoto"
                     }
                     setFoodOldImages(oldImages)
-        
-                    food.nutriments["energy-kcal_100g"]
-                        ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
-                        :null
-                    food.nutriments.proteins_100g
-                        ? setValue("nutriment_proteins", food.nutriments.proteins_100g)
-                        :null
-                    food.nutriments.fat_100g
-                        ? setValue("nutriment_fat", food.nutriments.fat_100g)
-                        :null
-                    food.nutriments["saturated-fat_100g"]
-                        ? setValue("nutriment_saturated-fat", food.nutriments["saturated-fat_100g"])
-                        :null
-                    food.nutriments["monounsaturated-fat_100g"]
-                        ? setValue("nutriment_monounsaturated-fat", food.nutriments["monounsaturated-fat_100g"])
-                        :null
-                    food.nutriments["polyunsaturated-fat_100g"]
-                        ? setValue("nutriment_polyunsaturated-fat", food.nutriments["polyunsaturated-fat_100g"])
-                        :null
-                    food.nutriments["trans-fat_100g"]
-                        ? setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"])
-                        :null
-                    food.nutriments["cholesterol_value"]
-                        ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_value"])
-                        :null
-                    food.nutriments["carbohydrates_100g"]
-                        ? setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"])
-                        :null
-                    food.nutriments["sugars_100g"]
-                        ? setValue("nutriment_sugars", food.nutriments["sugars_100g"])
-                        :null
-                    food.nutriments["sodium_value"]
-                        ? setValue("nutriment_sodium", food.nutriments["sodium_value"])
-                        :null
+                    if (food.nutriments["energy-kcal_100g"]) {
+                        setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
+                    }
+                    if (food.nutriments.proteins_100g) {
+                        setValue("nutriment_proteins", food.nutriments.proteins_100g);
+                    }
+                    
+                    if (food.nutriments.fat_100g) {
+                        setValue("nutriment_fat", food.nutriments.fat_100g);
+                    }
+                    
+                    if (food.nutriments["saturated-fat_100g"]) {
+                        setValue("nutriment_saturated-fat", food.nutriments["saturated-fat_100g"]);
+                    }
+                    
+                    if (food.nutriments["monounsaturated-fat_100g"]) {
+                        setValue("nutriment_monounsaturated-fat", food.nutriments["monounsaturated-fat_100g"]);
+                    }
+                    
+                    if (food.nutriments["polyunsaturated-fat_100g"]) {
+                        setValue("nutriment_polyunsaturated-fat", food.nutriments["polyunsaturated-fat_100g"]);
+                    }
+                    
+                    if (food.nutriments["trans-fat_100g"]) {
+                        setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"]);
+                    }
+                    
+                    if (food.nutriments["cholesterol_value"]) {
+                        setValue("nutriment_cholesterol", food.nutriments["cholesterol_value"]);
+                    }
+                    
+                    if (food.nutriments["carbohydrates_100g"]) {
+                        setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"]);
+                    }
+                    
+                    if (food.nutriments["sugars_100g"]) {
+                        setValue("nutriment_sugars", food.nutriments["sugars_100g"]);
+                    }
+                    
+                    if (food.nutriments["sodium_value"]) {
+                        setValue("nutriment_sodium", food.nutriments["sodium_value"]);
+                    }
         
                     const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 
                         allergensAll.find(allergen => allergen.id === tagId)
@@ -271,7 +279,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
 
     useEffect(() => {
         let newAllergens:string[] = []
-        allergensTags.map(allergen => {
+        allergensTags.forEach(allergen => {
             newAllergens.push(allergen.id)
         })
         setValue("allergens", newAllergens.join(", "))
@@ -279,7 +287,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
 
     useEffect(() => {
         let newTraces:string[] = []
-        tracesTags.map(allergen => {
+        tracesTags.forEach(allergen => {
             newTraces.push(allergen.id)
         })
         setValue("traces", newTraces.join(", "))
@@ -287,7 +295,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
 
     useEffect(() => {
         let newAdditives:string[] = []
-        additivesTags.map(additive => {
+        additivesTags.forEach(additive => {
             newAdditives.push(additive.id)
         })
         setValue("additives", newAdditives.join(", "))
@@ -349,35 +357,33 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             }
             
             console.log(formData)
-            try{
-                api.post(submissionsURL, formData,{
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        Authorization: "Bearer " + window.localStorage.token
-                    }
-                })
-                .then(response => {
-                    if (response.status === 200){
-                        
-                        setSnackbarMsg("Aporte enviado! Te avisaremos cuando sea aprobado o rechazado.")
-                    }
-                    else if (response.status === 400){
-                        setSnackbarMsg("Error al subir el aporte")
-                    }
-                    else{
-                        setSnackbarMsg("Error")
-                    }
-                })
-            }
-            catch (error) {
+            api.post(submissionsURL, formData,{
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: "Bearer " + window.localStorage.token
+                }
+            })
+            .then(response => {
+                if (response.status === 200){
+                    
+                    setSnackbarMsg("Aporte enviado! Te avisaremos cuando sea aprobado o rechazado.")
+                }
+                else if (response.status === 400){
+                    setSnackbarMsg("Error al subir el aporte")
+                }
+                else{
+                    setSnackbarMsg("Error")
+                }
+            })
+            .catch((error)=> {
                 console.error("error al subir aporte:", error)
                 setSnackbarMsg("Error al subir el aporte")
-            }
-            finally {
+            })
+            .finally(()=> {
                 setIsSending(false)
                 setResultOpen(true)
-            }
+            })
             
         }    
         else{
@@ -895,11 +901,21 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 <Typography variant="subtitle1">
                                     Ingredientes
                                 </Typography>
+                                <button 
+                                    onClick={() => handleOpenImage(foodOldImages.ingredients)} 
+                                    style={{ 
+                                        background: "none", 
+                                        border: "none", 
+                                        padding: 0, 
+                                        cursor: "pointer" 
+                                    }} 
+                                    aria-label="Ver imágen"
+                                >
                                     <img src={foodOldImages.ingredients}
                                         alt="Sin imágen" 
                                         style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                        onClick={()=>handleOpenImage(foodOldImages.ingredients)}
                                 />
+                                </button>
                             </Box>
                             
                             <Box sx={{
@@ -911,11 +927,22 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 <Typography variant="subtitle1">
                                     Frente
                                 </Typography>
-                                    <img src={foodOldImages.front}
-                                        alt="Sin imágen" 
-                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                        onClick={()=>handleOpenImage(foodOldImages.front)}
-                                />
+                                <button 
+                                    onClick={() => handleOpenImage(foodOldImages.front)} 
+                                    style={{ 
+                                        background: "none", 
+                                        border: "none", 
+                                        padding: 0, 
+                                        cursor: "pointer" 
+                                    }} 
+                                    aria-label="Ver imágen"
+                                >
+                                    <img 
+                                        src={foodOldImages.front}
+                                        alt="Sin imágen"
+                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} 
+                                    />
+                                </button>
                             </Box>
                             
                             <Box sx={{
@@ -927,11 +954,22 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 <Typography variant="subtitle1">
                                     Nutrición
                                 </Typography>
+                                <button 
+                                    onClick={() => handleOpenImage(foodOldImages.nutrition)} 
+                                    style={{ 
+                                        background: "none", 
+                                        border: "none", 
+                                        padding: 0, 
+                                        cursor: "pointer" 
+                                    }} 
+                                    aria-label="Ver imágen"
+                                >
                                     <img src={foodOldImages.nutrition}
                                         alt="Sin imágen" 
                                         style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
                                         onClick={()=>handleOpenImage(foodOldImages.nutrition)}
                                 />
+                                </button>
                             </Box>
                             
                         </Box>
