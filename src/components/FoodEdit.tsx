@@ -1,13 +1,11 @@
-import React, { ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { Button, Box, Alert, Grid, Typography, TextField, Chip, 
     Dialog, DialogTitle, List, ListItem, ListItemText, DialogActions, 
     IconButton, DialogContent, Snackbar, CircularProgress,
     Divider,TableContainer,Paper,Table,TableHead,TableRow,
     TableCell,TableBody,FormControlLabel,Checkbox} from '@mui/material';
-import { useNavigate, useParams} from 'react-router-dom';
+import { useParams} from 'react-router-dom';
 import api from "../api";
-import { useEffect, useState } from 'react';
-import { FoodExternal } from "../interfaces/foodExternal";
 import { useForm } from "react-hook-form";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AddAPhotoRoundedIcon from '@mui/icons-material/AddAPhotoRounded';
@@ -46,19 +44,17 @@ type FormValues = {
     nutriment_carbohydrates_unit: string;
     nutriment_sugars: number|string;
     nutriment_sugars_unit: string;
-    nutriment_salt: number|string;
-    nutriment_salt_unit: string;
+    nutriment_sodium: number|string;
+    nutriment_sodium_unit: string;
     nutrition_data_per: string;
   };
 
 const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) => {
     const { id } = useParams()
-    const navigate = useNavigate()
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
     const foodURL = "/submissions-food"
     const submissionsURL = "/submissions"
-    const [foodData, setFoodData] = useState<FoodExternal>()
     const [allergensAll, setAllergensAll] = useState<Allergen[]>([])
     const [allergensTags, setAllergensTags] = useState<Allergen[]>([])
     const [additivesAll, setAdditivesAll] = useState<Additive[]>([])
@@ -115,8 +111,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             nutriment_carbohydrates_unit: "g",
             nutriment_sugars: "",
             nutriment_sugars_unit: "g",
-            nutriment_salt: "",
-            nutriment_salt_unit: "mg",
+            nutriment_sodium: "",
+            nutriment_sodium_unit: "mg",
             nutrition_data_per: "100g"
         }
     })
@@ -131,19 +127,14 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         { label: "Colesterol (mg)", field: "nutriment_cholesterol" },
         { label: "H. de C. Disp. (g)", field: "nutriment_carbohydrates" },
         { label: "Azúcares totales (g)", field: "nutriment_sugars" },
-        { label: "Sodio (mg)", field: "nutriment_salt" },
+        { label: "Sodio (mg)", field: "nutriment_sodium" },
       ]
-    const { register, handleSubmit, formState, control, getValues, watch, setValue } = form
+    const { register, handleSubmit, formState, getValues, setValue } = form
     const {errors} = formState    
-    type NutrientField = keyof FormValues;
 
     useEffect(()=>{
         document.title = "Edición de alimento - EyesFood";
-        let searchParams = new URLSearchParams(location.search);
-        let newFood = searchParams.get("n") || null
-        if (newFood){
-            setSubmissionType("new")
-        }
+        
         api.get(allergensURL, {
             withCredentials: true,
             headers: {
@@ -168,102 +159,114 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     },[allergensAll])
 
     useEffect(()=>{
-       api.get(foodURL + "/" + id, {
-        withCredentials: true,
-        headers: {
-            Authorization: "Bearer " + window.localStorage.token
-        }
-       })
-       .then((response)=>{
-            let food = response.data.foodData
-            setFoodData(food)
-            form.reset(food)
-            // setValue("id", food.id || "");
-            // setValue("product_name", food.product_name || "");
-            // setValue("quantity", food.quantity || "");
-            // setValue("brands", food.brands || "");
-            setValue("ingredients_text_es", food.ingredients_text || "");
-            // setValue("serving_size", food.serving_size || "");
-            // setValue("allergens", food.allergens_tags.join(", ") || "")
-            // setValue("traces", food.traces_tags.join(", ") || "")
-            // setValue("additives", food.additives_tags.join(", ") || "")
-            let oldImages = {front: "", ingredients: "", nutrition: ""}
-            if(food.selected_images){
-                food.selected_images.front?.display
-                        ? oldImages.front = food.selected_images.front.display.es
-                                            || food.selected_images.front.display.en 
-                                            || "noPhoto"
-                        : oldImages.front = "noPhoto"
-                food.selected_images.ingredients?.display
-                        ? oldImages.ingredients = food.selected_images.ingredients.display.es
-                                            || food.selected_images.ingredients.display.en 
-                                            || "noPhoto"
-                        : oldImages.ingredients = "noPhoto"
-
-                food.selected_images.nutrition?.display
-                        ? oldImages.nutrition = food.selected_images.nutrition.display.es
-                                            || food.selected_images.nutrition.display.en 
-                                            || "noPhoto"
-                        : oldImages.nutrition = "noPhoto"
-            }
-            setFoodOldImages(oldImages)
-
-            food.nutriments["energy-kcal_100g"]
-                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
-                :null
-            food.nutriments.proteins_100g
-                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
-                :null
-            food.nutriments.fat_100g
-                ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
-                :null
-            food.nutriments["saturated-fat_100g"]
-                ? setValue("nutriment_saturated-fat", food.nutriments["saturated-fat_100g"])
-                :null
-            food.nutriments["monounsaturated-fat_100g"]
-                ? setValue("nutriment_monounsaturated-fat", food.nutriments["monounsaturated-fat_100g"])
-                :null
-            food.nutriments["polyunsaturated-fat_100g"]
-                ? setValue("nutriment_polyunsaturated-fat", food.nutriments["polyunsaturated-fat_100g"])
-                :null
-            food.nutriments["trans-fat_100g"]
-                ? setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"])
-                :null
-            food.nutriments["cholesterol_100g"]
-                ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_100g"]*1000)
-                :null
-            food.nutriments["carbohydrates_100g"]
-                ? setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"])
-                :null
-            food.nutriments["sugars_100g"]
-                ? setValue("nutriment_sugars", food.nutriments["sugars_100g"])
-                :null
-            food.nutriments["salt_100g"]
-                ? setValue("nutriment_salt", food.nutriments["salt_100g"]*1000)
-                :null
-
-            const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 
-                allergensAll.find(allergen => allergen.id === tagId)
-            ).filter(Boolean) as Allergen[]; // Filter out any undefined results
-
-            const initialTracesTags = food.traces_tags?.map((tagId: string) => 
-                allergensAll.find(allergen => allergen.id === tagId)
-            ).filter(Boolean) as Allergen[]; // Filter out any undefined results
-
-            const initialAdditivesTags = food.additives_tags?.map((tagId: string) => 
-                additivesAll.find(additive=> additive.id === tagId)
-            ).filter(Boolean) as Additive[]; // Filter out any undefined results
-            
-            setAllergensTags(initialAllergensTags || []) 
-            setTracesTags(initialTracesTags || [])
-            setAdditivesTags(initialAdditivesTags || [])
-        }) 
-        .catch(error => {
-            console.log(error)
-        })
-        .finally(()=>{
+        let searchParams = new URLSearchParams(location.search);
+        let newFood = searchParams.get("n") || null
+        if (newFood){
+            setSubmissionType("new")
             setAllDone(true)
-        })
+            setValue("id", id)
+        }
+        else{
+            api.get(foodURL + "/" + id, {
+                withCredentials: true,
+                headers: {
+                    Authorization: "Bearer " + window.localStorage.token
+                }
+                })
+                .then((response)=>{
+                    let food = response.data.foodData
+                    form.reset(food)
+                    // setValue("id", food.id || "");
+                    // setValue("product_name", food.product_name || "");
+                    // setValue("quantity", food.quantity || "");
+                    // setValue("brands", food.brands || "");
+                    setValue("ingredients_text_es", food.ingredients_text || "");
+                    setValue("nutriment_cholesterol_unit", "mg")
+                    setValue("nutriment_sodium_unit", "mg")
+                    // setValue("serving_size", food.serving_size || "");
+                    // setValue("allergens", food.allergens_tags.join(", ") || "")
+                    // setValue("traces", food.traces_tags.join(", ") || "")
+                    // setValue("additives", food.additives_tags.join(", ") || "")
+                    let oldImages = {front: "", ingredients: "", nutrition: ""}
+                    if(food.selected_images){
+                        food.selected_images.front?.display
+                                ? oldImages.front = food.selected_images.front.display.es
+                                                    || food.selected_images.front.display.en 
+                                                    || "noPhoto"
+                                : oldImages.front = "noPhoto"
+                        food.selected_images.ingredients?.display
+                                ? oldImages.ingredients = food.selected_images.ingredients.display.es
+                                                    || food.selected_images.ingredients.display.en 
+                                                    || "noPhoto"
+                                : oldImages.ingredients = "noPhoto"
+        
+                        food.selected_images.nutrition?.display
+                                ? oldImages.nutrition = food.selected_images.nutrition.display.es
+                                                    || food.selected_images.nutrition.display.en 
+                                                    || "noPhoto"
+                                : oldImages.nutrition = "noPhoto"
+                    }
+                    setFoodOldImages(oldImages)
+        
+                    food.nutriments["energy-kcal_100g"]
+                        ? setValue("nutriment_energy", food.nutriments["energy-kcal_100g"])
+                        :null
+                    food.nutriments.proteins_100g
+                        ? setValue("nutriment_proteins", food.nutriments.proteins_100g)
+                        :null
+                    food.nutriments.fat_100g
+                        ? setValue("nutriment_fat", food.nutriments.fat_100g)
+                        :null
+                    food.nutriments["saturated-fat_100g"]
+                        ? setValue("nutriment_saturated-fat", food.nutriments["saturated-fat_100g"])
+                        :null
+                    food.nutriments["monounsaturated-fat_100g"]
+                        ? setValue("nutriment_monounsaturated-fat", food.nutriments["monounsaturated-fat_100g"])
+                        :null
+                    food.nutriments["polyunsaturated-fat_100g"]
+                        ? setValue("nutriment_polyunsaturated-fat", food.nutriments["polyunsaturated-fat_100g"])
+                        :null
+                    food.nutriments["trans-fat_100g"]
+                        ? setValue("nutriment_trans-fat", food.nutriments["trans-fat_100g"])
+                        :null
+                    food.nutriments["cholesterol_value"]
+                        ? setValue("nutriment_cholesterol", food.nutriments["cholesterol_value"])
+                        :null
+                    food.nutriments["carbohydrates_100g"]
+                        ? setValue("nutriment_carbohydrates", food.nutriments["carbohydrates_100g"])
+                        :null
+                    food.nutriments["sugars_100g"]
+                        ? setValue("nutriment_sugars", food.nutriments["sugars_100g"])
+                        :null
+                    food.nutriments["sodium_value"]
+                        ? setValue("nutriment_sodium", food.nutriments["sodium_value"])
+                        :null
+        
+                    const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 
+                        allergensAll.find(allergen => allergen.id === tagId)
+                    ).filter(Boolean) as Allergen[]; // Filter out any undefined results
+        
+                    const initialTracesTags = food.traces_tags?.map((tagId: string) => 
+                        allergensAll.find(allergen => allergen.id === tagId)
+                    ).filter(Boolean) as Allergen[]; // Filter out any undefined results
+        
+                    const initialAdditivesTags = food.additives_tags?.map((tagId: string) => 
+                        additivesAll.find(additive=> additive.id === tagId)
+                    ).filter(Boolean) as Additive[]; // Filter out any undefined results
+                    
+                    setAllergensTags(initialAllergensTags || []) 
+                    setTracesTags(initialTracesTags || [])
+                    setAdditivesTags(initialAdditivesTags || [])
+                }) 
+                .catch(error => {
+                    console.log("hola")
+                    console.log(error)
+                })
+                .finally(()=>{
+                    setAllDone(true)
+                })
+        }
+        
     },[additivesAll])
 
     useEffect(() => {

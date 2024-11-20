@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box, Alert, Grid, Typography, ToggleButtonGroup, ToggleButton, CircularProgress, 
     Card, CardContent, IconButton, Dialog, DialogContent, DialogActions, Snackbar, 
     SnackbarCloseReason, DialogTitle, Divider, Chip} from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import api from "../api";
-import { useEffect, useState } from 'react';
 import { UserEditsFood } from "../interfaces/userEditsFood";
 import dayjs from "dayjs";
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -16,7 +15,6 @@ type Allergen = { id: string; name: string};
 type Additive = { id: string; name: string};
 
 const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
-    const navigate = useNavigate()
     const { id } = useParams()
     const [filter, setFilter] = useState("pending")
     const [foodEditAll, setFoodEditAll] = useState<UserEditsFood[]>([])

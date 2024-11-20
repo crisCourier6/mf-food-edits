@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box, Grid, Typography, CircularProgress, Card, CardContent, Dialog, 
     DialogContent, DialogActions, DialogTitle, Divider, Chip} from '@mui/material';
-import { useNavigate, useParams} from 'react-router-dom';
+import { useParams} from 'react-router-dom';
 import api from "../api";
-import { useEffect, useState } from 'react';
 import { UserEditsFood } from "../interfaces/userEditsFood";
 import dayjs from "dayjs";
 
@@ -11,9 +10,7 @@ type Allergen = { id: string; name: string};
 type Additive = { id: string; name: string};
 
 const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
-    const navigate = useNavigate()
     const { id } = useParams()
-    const [filter, setFilter] = useState("pending")
     const [foodEditAll, setFoodEditAll] = useState<UserEditsFood[]>([])
     const [selectedEdit, setSelectedEdit] = useState<UserEditsFood|null>(null);
     const [showEdit, setShowEdit] = useState(false)

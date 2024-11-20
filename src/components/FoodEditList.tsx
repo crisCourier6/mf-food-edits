@@ -1,10 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Box, Alert, Grid, Dialog, DialogContent, DialogActions, TextField, Snackbar, IconButton, 
     Typography, DialogTitle, Tooltip, Chip, Divider, CircularProgress, TableContainer, Table, TableHead, 
     TableRow, TableCell, TableBody, Paper} from '@mui/material';
-import { useNavigate} from 'react-router-dom';
 import api from "../api";
-import { useEffect, useState } from 'react';
 import { DataGrid, GridColDef, GridFilterModel, GridRenderCellParams, GridToolbar } from "@mui/x-data-grid"
 import { esES } from '@mui/x-data-grid/locales';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,7 +15,6 @@ type Additive = { id: string; name: string};
 type Nut = {label:string, value:number}
 
 const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
-    const navigate = useNavigate()
     const editsURL = "/submissions"
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
@@ -174,17 +171,17 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     const handleEdit = (edit: any) => {
         setSelectedEdit(edit);
         setNutrition([
-            { label: "Energía (kcal)", value: edit.foodData.nutriment_energy || 0 },
-            { label: "Proteínas (g)", value: edit.foodData.nutriment_proteins || 0 },
-            { label: "Grasa total (g)", value: edit.foodData.nutriment_fat || 0 },
-            { label: "G. Saturadas (g)", value: edit.foodData["nutriment_saturated-fat"] || 0 },
-            { label: "G. Monoinsat. (g)", value: edit.foodData["nutriment_monounsaturated-fat"] || 0 },
-            { label: "G. Poliinsat. (g)", value: edit.foodData["nutriment_polyunsaturated-fat"] || 0 },
-            { label: "G. Trans (g)", value: edit.foodData["nutriment_trans-fat"] || 0 },
-            { label: "Colesterol (mg)", value: edit.foodData.nutriment_cholesterol || 0 },
-            { label: "H. de C. Disp. (g)", value: edit.foodData.nutriment_carbohydrates || 0 },
-            { label: "Azúcares totales (g)", value: edit.foodData.nutriment_sugars || 0 },
-            { label: "Sodio (mg)", value: edit.foodData.nutriment_salt || 0 },
+            { label: "Energía (kcal)", value: edit.foodData.nutriment_energy || "" },
+            { label: "Proteínas (g)", value: edit.foodData.nutriment_proteins || "" },
+            { label: "Grasa total (g)", value: edit.foodData.nutriment_fat || "" },
+            { label: "G. Saturadas (g)", value: edit.foodData["nutriment_saturated-fat"] || "" },
+            { label: "G. Monoinsat. (g)", value: edit.foodData["nutriment_monounsaturated-fat"] || "" },
+            { label: "G. Poliinsat. (g)", value: edit.foodData["nutriment_polyunsaturated-fat"] || "" },
+            { label: "G. Trans (g)", value: edit.foodData["nutriment_trans-fat"] || "" },
+            { label: "Colesterol (mg)", value: edit.foodData.nutriment_cholesterol || "" },
+            { label: "H. de C. Disp. (g)", value: edit.foodData.nutriment_carbohydrates || "" },
+            { label: "Azúcares totales (g)", value: edit.foodData.nutriment_sugars || "" },
+            { label: "Sodio (mg)", value: edit.foodData.nutriment_sodium || "" },
           ])  
         const initialAllergensTags = edit.foodData.allergens?.split(", ").map((tagId: string) => 
             allergensAll.find(allergen => allergen.id === tagId)
@@ -551,7 +548,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                         <DialogActions>
                             {!processingRequest? selectedEdit?.state === "pending" && (<>
                                     <Button variant="contained" onClick={()=>handleStateChange(selectedEdit.id, "accepted")} color="primary">Aceptar</Button>
-                                    <Button variant="contained" onClick={()=>handleStateChange(selectedEdit.id, "rejected", reason)} color="primary">Rechazar</Button>
+                                    <Button variant="contained" disabled={reason===""} onClick={()=>handleStateChange(selectedEdit.id, "rejected", reason)} color="primary">Rechazar</Button>
                                     <TextField 
                                     value={reason} 
                                     label="Razón de rechazo"  
