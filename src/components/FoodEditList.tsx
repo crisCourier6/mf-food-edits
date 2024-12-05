@@ -5,7 +5,7 @@ import { Button, Box, Alert, Grid, Dialog, DialogContent, DialogActions, TextFie
 import api from "../api";
 import { DataGrid, GridColDef, GridFilterModel, GridRenderCellParams, GridToolbar } from "@mui/x-data-grid"
 import { esES } from '@mui/x-data-grid/locales';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import EditIcon from '@mui/icons-material/Edit';
 import NoPhoto from "../../public/no-photo.png"
 import { UserEditsFood } from "../interfaces/userEditsFood";
@@ -18,6 +18,8 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     const editsURL = "/submissions"
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
+    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
+    const currentUserId = window.sessionStorage.getItem("id") || window.localStorage.getItem("id")
     const imagesURL = process.env.REACT_APP_IMAGES_URL
     const [edits, setEdits] = useState<UserEditsFood[]>([])
     const [reason, setReason] = useState("")
@@ -41,7 +43,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
         api.get(allergensURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -54,7 +56,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
         api.get(additivesURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -67,7 +69,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
         api.get(editsURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then((res)=>{
@@ -135,7 +137,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                         <IconButton color="error" onClick={() => {
                             setSelectedEdit(params.row);
                             setOpenDeleteDialog(true);}}>
-                            <DeleteIcon />
+                            <DeleteForeverRoundedIcon />
                         </IconButton>
                     </Tooltip>
                     
@@ -149,7 +151,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
             await api.delete(`${editsURL}/${id}`, {
                 withCredentials: true,
                 headers: {
-                    Authorization: "Bearer " + window.localStorage.token
+                    Authorization: "Bearer " + token
                 }
             });
             setEdits(edits.filter((edit: UserEditsFood) => edit.id !== id));
@@ -205,6 +207,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     };
 
     const handleOpenImage = (link:string) => {
+        console.log(link)
         setSelectedImage(link)
     }
 
@@ -220,7 +223,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                 ...selectedEdit,
                 state: newState,
                 rejectReason: rejectReason,
-                idJudge: window.localStorage.id,
+                idJudge: currentUserId,
             }
             console.log(change)
             let res = await api.post(`${editsURL}/${id}/evaluate`,
@@ -228,7 +231,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                 {
                     withCredentials: true,
                     headers: {
-                        Authorization: "Bearer " + window.localStorage.token
+                        Authorization: "Bearer " + token
                     }
                 }
             )
@@ -237,7 +240,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                     ...edit, 
                     state: newState,
                     rejectReason,
-                    idJudge: window.localStorage.id
+                    idJudge: id
                     } : edit
             );
             setEdits(updatedEdits);
@@ -247,7 +250,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                     ...prevEdit,
                     state: newState,
                     rejectReason,
-                    idJudge: window.localStorage.id
+                    idJudge: id
                 }));
             }
             setSnackbarMessage('Solicitud evaluada con éxito');
@@ -510,7 +513,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                         aria-label="Ver imágen"
                                     >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/ingredients.jpg`}
-                                         alt="Ingredientes" 
+                                         alt="Sin imágen" 
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
                                         
                                     />
@@ -537,7 +540,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                         aria-label="Ver imágen"
                                     >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/front.jpg`}
-                                         alt="Frente" 
+                                         alt="Sin imágen"  
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
                                          
                                     />
@@ -564,7 +567,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                         aria-label="Ver imágen"
                                     >
                                         <img src={`${imagesURL}/${selectedEdit.imagesFolder}/nutrition.jpg`}
-                                         alt="Nutrición" 
+                                         alt="Sin imágen"  
                                          style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
                                          
                                     />

@@ -4,7 +4,7 @@ import { Button, Box, Alert, Grid, Typography, TextField, Chip,
     IconButton, DialogContent, Snackbar, CircularProgress,
     Divider,TableContainer,Paper,Table,TableHead,TableRow,
     TableCell,TableBody,FormControlLabel,Checkbox} from '@mui/material';
-import { useParams} from 'react-router-dom';
+import { Navigate, useNavigate, useParams} from 'react-router-dom';
 import api from "../api";
 import { useForm } from "react-hook-form";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -50,11 +50,14 @@ type FormValues = {
   };
 
 const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) => {
+    const navigate = useNavigate()
     const { id } = useParams()
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
     const foodURL = "/submissions-food"
     const submissionsURL = "/submissions"
+    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
+    const currentUserId = window.sessionStorage.getItem("id") || window.localStorage.getItem("id")
     const [allergensAll, setAllergensAll] = useState<Allergen[]>([])
     const [allergensTags, setAllergensTags] = useState<Allergen[]>([])
     const [additivesAll, setAdditivesAll] = useState<Additive[]>([])
@@ -83,6 +86,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     const [selectedImage, setSelectedImage] = useState<string|null>(null)
     const [noNutrition, setNoNutrition] = useState(false)
     const [allDone, setAllDone] = useState(false)
+    const [showNew, setShowNew] = useState(false)
+    const [subSent, setSubSent] = useState(false)
     const form = useForm<FormValues>({
         mode: "onBlur",
         reValidateMode: "onBlur",
@@ -138,7 +143,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         api.get(allergensURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -150,7 +155,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         api.get(additivesURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -163,6 +168,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         let newFood = searchParams.get("n") || null
         if (newFood){
             setSubmissionType("new")
+            setShowNew(true)
             setAllDone(true)
             setValue("id", id)
         }
@@ -170,7 +176,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             api.get(foodURL + "/" + id, {
                 withCredentials: true,
                 headers: {
-                    Authorization: "Bearer " + window.localStorage.token
+                    Authorization: "Bearer " + token
                 }
                 })
                 .then((response)=>{
@@ -339,9 +345,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         setIsSending(true)
         let filteredData = getFilteredFormData(data)
         const formData = new FormData();
-        if (window.localStorage.id){
+        if (currentUserId){
             formData.append("idFood", data.id)
-            formData.append("idUser", window.localStorage.id)
+            formData.append("idUser", currentUserId)
             formData.append("type", submissionType)
             formData.append("state", "pending")
             formData.append("foodData", JSON.stringify(filteredData))
@@ -361,26 +367,28 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 withCredentials: true,
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    Authorization: "Bearer " + window.localStorage.token
+                    Authorization: "Bearer " + token
                 }
             })
             .then(response => {
                 if (response.status === 200){
                     
-                    setSnackbarMsg("Aporte enviado! Te avisaremos cuando sea aprobado o rechazado.")
+                    setSubSent(true)
                 }
                 else if (response.status === 400){
                     setSnackbarMsg("Error al subir el aporte")
+                    setIsSending(false)
+                    setResultOpen(true)
                 }
                 else{
                     setSnackbarMsg("Error")
+                    setIsSending(false)
+                    setResultOpen(true)
                 }
             })
             .catch((error)=> {
                 console.error("error al subir aporte:", error)
                 setSnackbarMsg("Error al subir el aporte")
-            })
-            .finally(()=> {
                 setIsSending(false)
                 setResultOpen(true)
             })
@@ -560,6 +568,41 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                     gap: 3
                 }}
                 > 
+                <Dialog open={showNew} onClose={()=>setShowNew(false)}>
+                    <DialogTitle>
+                        Producto no encontrado
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography variant="subtitle1">
+                        ¿Quieres ayudarnos aportando información de este alimento? No hace falta completar todo el formulario.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        
+                        <Button onClick={()=>navigate("/home")}>
+                            No
+                        </Button>
+                        <Button variant="contained" onClick={()=>setShowNew(false)}>
+                            Sí
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog open={subSent} onClose={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}>
+                    <DialogTitle>
+                        Aporte enviado
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography variant="subtitle1">
+                        Te avisaremos cuando sea aprobado o rechazado.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}>
+                            Ok
+                        </Button>
+
+                    </DialogActions>
+                </Dialog>
                     <form onSubmit={handleSubmit(onSubmit)} noValidate encType="multipart/form-data">
                         <TextField 
                         id="id"
@@ -1072,7 +1115,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         <Button 
                             variant="contained" 
                             type="submit"
-                            disabled={isSending}
+                            disabled={isSending || subSent}
                             startIcon={isSending ? <CircularProgress size={24} /> : null}
                         >
                             {isSending ? 'Guardando...' : 'Guardar Cambios'}

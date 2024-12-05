@@ -11,6 +11,7 @@ type Additive = { id: string; name: string};
 
 const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
     const { id } = useParams()
+    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
     const [foodEditAll, setFoodEditAll] = useState<UserEditsFood[]>([])
     const [selectedEdit, setSelectedEdit] = useState<UserEditsFood|null>(null);
     const [showEdit, setShowEdit] = useState(false)
@@ -29,7 +30,7 @@ const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible
         api.get(allergensURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -41,7 +42,7 @@ const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible
         api.get(additivesURL, {
             withCredentials: true,
             headers: {
-                Authorization: "Bearer " + window.localStorage.token
+                Authorization: "Bearer " + token
             }
         })
         .then(response => {
@@ -55,7 +56,7 @@ const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible
                  {
                      withCredentials: true,
                      headers: {
-                         Authorization: "Bearer " + window.localStorage.token
+                         Authorization: "Bearer " + token
                      }
                  }) 
                  .then( response=> {
