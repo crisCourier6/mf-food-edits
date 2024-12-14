@@ -84,7 +84,7 @@ const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible
         const initialAdditivesTags = edit.foodData?.additives?.split(", ").map((tagId: string) => 
             additivesAll.find(additive=> additive.id === tagId)
         ).filter(Boolean) as Additive[]; // Filter out any undefined results
-        console.log(initialAllergensTags)
+        //console.log(initialAllergensTags)
         setAllergensTags(initialAllergensTags || []) 
         setTracesTags(initialTracesTags || [])
         setAdditivesTags(initialAdditivesTags || [])

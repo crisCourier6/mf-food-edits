@@ -273,7 +273,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                     setAdditivesTags(initialAdditivesTags || [])
                 }) 
                 .catch(error => {
-                    console.log("hola")
                     console.log(error)
                 })
                 .finally(()=>{
@@ -362,7 +361,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 formData.append("nutrition", nutritionFile);
             }
             
-            console.log(formData)
+            //console.log(formData)
             api.post(submissionsURL, formData,{
                 withCredentials: true,
                 headers: {
@@ -945,6 +944,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                     Ingredientes
                                 </Typography>
                                 <button 
+                                    type="button" 
                                     onClick={() => handleOpenImage(foodOldImages.ingredients)} 
                                     style={{ 
                                         background: "none", 
@@ -971,6 +971,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                     Frente
                                 </Typography>
                                 <button 
+                                    type="button" 
                                     onClick={() => handleOpenImage(foodOldImages.front)} 
                                     style={{ 
                                         background: "none", 
@@ -998,6 +999,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                     Nutrición
                                 </Typography>
                                 <button 
+                                    type="button" 
                                     onClick={() => handleOpenImage(foodOldImages.nutrition)} 
                                     style={{ 
                                         background: "none", 
@@ -1010,7 +1012,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                     <img src={foodOldImages.nutrition}
                                         alt="Sin imágen" 
                                         style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                        onClick={()=>handleOpenImage(foodOldImages.nutrition)}
+                                        
                                 />
                                 </button>
                             </Box>

@@ -7,6 +7,7 @@ import { DataGrid, GridColDef, GridFilterModel, GridRenderCellParams, GridToolba
 import { esES } from '@mui/x-data-grid/locales';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import EditIcon from '@mui/icons-material/Edit';
+import Visibility from "@mui/icons-material/Visibility"
 import NoPhoto from "../../public/no-photo.png"
 import { UserEditsFood } from "../interfaces/userEditsFood";
 
@@ -128,9 +129,12 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                     gap: 1,
                     height: '100%',
                 }}>
-                    <Tooltip title="Evaluar aporte" key="edit" placement="left" arrow={true}>
+                    <Tooltip title={params.row.state === "pending"?"Evaluar aporte":"Ver aporte"} key="edit" placement="left" arrow={true}>
                         <IconButton color="primary" onClick={() => handleEdit(params.row)}>
-                            <EditIcon />
+                            {params.row.state === "pending"
+                                ?  <EditIcon />
+                                :  <Visibility/>
+                            }
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Eliminar" key="delete" placement="right" arrow>
@@ -191,7 +195,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
         const initialAdditivesTags = edit.foodData.additives?.split(", ").map((tagId: string) => 
             additivesAll.find(additive=> additive.id === tagId)
         ).filter(Boolean) as Additive[]; // Filter out any undefined results
-        console.log(initialAllergensTags)
+        //console.log(initialAllergensTags)
         setAllergensTags(initialAllergensTags || []) 
         setTracesTags(initialTracesTags || [])
         setAdditivesTags(initialAdditivesTags || [])
@@ -207,7 +211,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
     };
 
     const handleOpenImage = (link:string) => {
-        console.log(link)
         setSelectedImage(link)
     }
 
@@ -225,7 +228,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                 rejectReason: rejectReason,
                 idJudge: currentUserId,
             }
-            console.log(change)
             let res = await api.post(`${editsURL}/${id}/evaluate`,
                 change,
                 {
@@ -244,7 +246,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                     } : edit
             );
             setEdits(updatedEdits);
-            console.log(updatedEdits)
             if (selectedEdit?.id === id) {
                 setSelectedEdit((prevEdit:any) => ({
                     ...prevEdit,
