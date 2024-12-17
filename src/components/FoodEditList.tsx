@@ -13,7 +13,7 @@ import { UserEditsFood } from "../interfaces/userEditsFood";
 
 type Allergen = { id: string; name: string};
 type Additive = { id: string; name: string};
-type Nut = {label:string, value:number}
+type Nut = {label:string, value:number|string}
 
 const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
     const editsURL = "/submissions"
@@ -474,7 +474,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                                 </TableCell>
                                                 <TableCell align="center" sx={{ padding: '4px 8px' }}>
                                                     <Typography variant="subtitle1">
-                                                        {nutriment.value}
+                                                        {typeof nutriment.value === "number" ? nutriment.value.toFixed(1) : nutriment.value || ""}
                                                     </Typography>
                                                 </TableCell>
                                             </TableRow>
@@ -620,7 +620,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                         onClose={handleCloseSnackbar}
                         message={snackbarMessage}
                     >
-                        <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes("Error")?"error":"success"} sx={{ width: '100%' }}>
+                        <Alert variant="filled" onClose={handleCloseSnackbar} severity={snackbarMessage.includes("Error")?"error":"success"} sx={{ width: '100%' }}>
                             {snackbarMessage}
                         </Alert>
                     </Snackbar>

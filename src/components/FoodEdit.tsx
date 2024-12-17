@@ -1147,7 +1147,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                             autoHideDuration={6000}
                             onClose={() => setResultOpen(false)}
                         >
-                            <Alert onClose={() => setResultOpen(false)} severity={snackbarMsg.includes('Error') ? 'error' : 'success'}>
+                            <Alert variant="filled" onClose={() => setResultOpen(false)} severity={snackbarMsg.includes('Error') ? 'error' : 'success'}>
                             {snackbarMsg}
                             </Alert>
                         </Snackbar>
