@@ -584,6 +584,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) 
                                     <TextField 
                                     value={reason} 
                                     label="Razón de rechazo"  
+                                    inputProps = {{maxLength: 100}}
                                     variant="standard"
                                     onChange={(e) => setReason(e.target.value)}
                                     multiline

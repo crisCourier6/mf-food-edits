@@ -608,6 +608,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         label="Código" 
                         type="text" 
                         variant="standard" 
+                        inputProps = {{maxLength: 20}}
                         fullWidth
                         {...register("id", {required: "Ingresar código"})}
                         error={!!errors.id}
@@ -619,6 +620,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         id="product_name" 
                         label="Nombre" 
                         type="text" 
+                        inputProps = {{maxLength: 100}}
                         variant="standard" 
                         fullWidth
                         {...register("product_name", {required: "Ingresar nombre"})}
@@ -629,6 +631,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         />
                         <TextField 
                         id="quantity"
+                        inputProps = {{maxLength: 50}}
                         label="Cantidad" 
                         type="text" 
                         variant="standard" 
@@ -642,6 +645,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         <TextField 
                         id="serving_size"
                         label="Porción" 
+                        inputProps = {{maxLength: 50}}
                         type="text" 
                         variant="standard" 
                         fullWidth
@@ -654,6 +658,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         <TextField 
                         id="brands"
                         label="Marca" 
+                        inputProps = {{maxLength: 100}}
                         type="text" 
                         variant="standard" 
                         fullWidth
@@ -668,6 +673,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         id="ingredients_text_es"
                         label="Ingredientes"
                         variant="standard"
+                        inputProps = {{maxLength: 1000}}
                         multiline
                         rows={6} // Default number of rows
                         maxRows={10} // Maximum number of rows it can expand to
@@ -838,6 +844,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                             <TextField
                                 label="Buscar aditivo"
                                 variant="standard"
+                                inputProps = {{maxLength: 100}}
                                 fullWidth
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
