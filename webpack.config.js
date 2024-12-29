@@ -20,6 +20,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.svg$/,
+        use: ['@svgr/webpack'],
+      },
+      {
         test: /\.(png|jpe?g|gif)$/i,
         use: [
           {
@@ -74,6 +78,7 @@ module.exports = {
         "./FoodEdit": "./src/components/FoodEdit",
         "./FoodEditList": "./src/components/FoodEditList",
         "./FoodEditUserList": "./src/components/FoodEditUserList",
+        "./FoodEditPendingCount": "./src/components/FoodEditPendingCount",
         "./FoodEditHistory": "./src/components/FoodEditHistory",
       },
       shared: {

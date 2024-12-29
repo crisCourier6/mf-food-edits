@@ -11,9 +11,13 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AddAPhotoRoundedIcon from '@mui/icons-material/AddAPhotoRounded';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import NoPhoto from "../../public/no-photo.png"
+import NavigateBack from "./NavigateBack";
+import { Allergen } from "../interfaces/allergen";
+import { Additive } from "../interfaces/additive";
+import CloseIcon from '@mui/icons-material/Close';
+import { FoodHasAllergen } from "../interfaces/foodHasAllergen";
+import { FoodHasAdditive } from "../interfaces/foodHasAdditive";
 
-type Allergen = { id: string; name: string};
-type Additive = { id: string; name: string};
 type FormValues = {
     id: string | undefined;
     product_name: string;
@@ -49,7 +53,7 @@ type FormValues = {
     nutrition_data_per: string;
   };
 
-const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) => {
+const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert: boolean }> = ({ isAppBarVisible, isExpert=false }) => {
     const navigate = useNavigate()
     const { id } = useParams()
     const additivesURL = "/submissions-additives"
@@ -80,14 +84,20 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     const [frontPreview, setFrontPreview] = useState<string | null>(null);
     const [nutritionFile, setNutritionFile] = useState<File | null>(null);
     const [nutritionPreview, setNutritionPreview] = useState<string | null>(null);
+    const [packagingFile, setPackagingFile] = useState<File | null>(null);
+    const [packagingPreview, setPackagingPreview] = useState<string | null>(null);
     const [isSending, setIsSending] = useState(false)
     const [submissionType, setSubmissionType] = useState("edit")
-    const [foodOldImages, setFoodOldImages] = useState({front: "", ingredients: "", nutrition: ""})
+    const [foodOldImages, setFoodOldImages] = useState({front: "", ingredients: "", nutrition: "", packaging: ""})
     const [selectedImage, setSelectedImage] = useState<string|null>(null)
     const [noNutrition, setNoNutrition] = useState(false)
     const [allDone, setAllDone] = useState(false)
     const [showNew, setShowNew] = useState(false)
     const [subSent, setSubSent] = useState(false)
+    const usedAllergens = ["en:gluten", "en:milk", "en:eggs", "en:nuts", "en:peanuts", "en:sesame-seeds", 
+        "en:soybeans", "en:celery", "en:mustard", "en:lupin", "en:fish", "en:crustaceans", 
+        "en:molluscs", "en:sulphur-dioxide-and-sulphites"
+    ]
     const form = useForm<FormValues>({
         mode: "onBlur",
         reValidateMode: "onBlur",
@@ -137,33 +147,40 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     const { register, handleSubmit, formState, getValues, setValue } = form
     const {errors} = formState    
 
-    useEffect(()=>{
+    useEffect(() => {
         document.title = "Edición de alimento - EyesFood";
         
-        api.get(allergensURL, {
-            withCredentials: true,
-            headers: {
-                Authorization: "Bearer " + token
+        const fetchData = async () => {
+            try {
+                const [allergensResponse, additivesResponse] = await Promise.all([
+                    api.get(allergensURL, {
+                        withCredentials: true,
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    api.get(additivesURL, {
+                        withCredentials: true,
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ]);
+                let newAllergens:Allergen[] = []
+                for (let allergen of allergensResponse.data){
+                    if (usedAllergens.includes(allergen.id)){
+                        newAllergens.push(allergen)
+                    }
+                    
+                }
+                setAllergensAll(newAllergens);
+                setAdditivesAll(additivesResponse.data);
+            } catch (error) {
+                console.error("Error fetching allergens/additives:", error);
             }
-        })
-        .then(response => {
-            setAllergensAll(response.data)
-        })
-    },[])
+        };
+        
+        fetchData();
+    }, []);
 
     useEffect(()=>{
-        api.get(additivesURL, {
-            withCredentials: true,
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        })
-        .then(response => {
-            setAdditivesAll(response.data)
-        })
-    },[allergensAll])
-
-    useEffect(()=>{
+        if (!additivesAll.length || !allergensAll.length) return;
         let searchParams = new URLSearchParams(location.search);
         let newFood = searchParams.get("n") || null
         if (newFood){
@@ -193,7 +210,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                     // setValue("allergens", food.allergens_tags.join(", ") || "")
                     // setValue("traces", food.traces_tags.join(", ") || "")
                     // setValue("additives", food.additives_tags.join(", ") || "")
-                    let oldImages = {front: "", ingredients: "", nutrition: ""}
+                    let oldImages = {front: "", ingredients: "", nutrition: "", packaging: ""}
                     if(food.selected_images){
                         food.selected_images.front?.display
                                 ? oldImages.front = food.selected_images.front.display.es
@@ -211,6 +228,11 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                                     || food.selected_images.nutrition.display.en 
                                                     || "noPhoto"
                                 : oldImages.nutrition = "noPhoto"
+                        food.selected_images.packaging?.display
+                                ? oldImages.packaging = food.selected_images.packaging.display.es
+                                                    || food.selected_images.packaging.display.en 
+                                                    || "noPhoto"
+                                : oldImages.packaging = "noPhoto"
                     }
                     setFoodOldImages(oldImages)
                     if (food.nutriments["energy-kcal_100g"]) {
@@ -255,17 +277,20 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                     if (food.nutriments["sodium_value"]) {
                         setValue("nutriment_sodium", food.nutriments["sodium_value"]);
                     }
-        
-                    const initialAllergensTags = food.allergens_tags?.map((tagId: string) => 
-                        allergensAll.find(allergen => allergen.id === tagId)
+                    let foodAdditives = response.data.foodHasAdditive
+                    let foodAllergens = response.data.foodHasAllergen.filter((allergen:FoodHasAllergen) => allergen.isAllergen)
+                    let foodTraces = response.data.foodHasAllergen.filter((allergen:FoodHasAllergen) => allergen.isTrace)
+
+                    const initialAllergensTags = foodAllergens?.map((initialAllergen: FoodHasAllergen) => 
+                        allergensAll.find((allergen:Allergen) => allergen.id === initialAllergen.allergenId)
                     ).filter(Boolean) as Allergen[]; // Filter out any undefined results
         
-                    const initialTracesTags = food.traces_tags?.map((tagId: string) => 
-                        allergensAll.find(allergen => allergen.id === tagId)
+                    const initialTracesTags = foodTraces?.map((initialTrace: FoodHasAllergen) => 
+                        allergensAll.find((trace:Allergen) => trace.id === initialTrace.allergenId)
                     ).filter(Boolean) as Allergen[]; // Filter out any undefined results
         
-                    const initialAdditivesTags = food.additives_tags?.map((tagId: string) => 
-                        additivesAll.find(additive=> additive.id === tagId)
+                    const initialAdditivesTags = foodAdditives?.map((initialAdditive: FoodHasAdditive) => 
+                        additivesAll.find(additive=> additive.id === initialAdditive.additiveId)
                     ).filter(Boolean) as Additive[]; // Filter out any undefined results
                     
                     setAllergensTags(initialAllergensTags || []) 
@@ -280,7 +305,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 })
         }
         
-    },[additivesAll])
+    },[additivesAll, allergensAll])
 
     useEffect(() => {
         let newAllergens:string[] = []
@@ -348,9 +373,11 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             formData.append("idFood", data.id)
             formData.append("idUser", currentUserId)
             formData.append("type", submissionType)
-            formData.append("state", "pending")
+            formData.append("state", isExpert?"accepted":"pending")
             formData.append("foodData", JSON.stringify(filteredData))
-            formData.append("imagesFolder",`${data.product_name}-${Date.now().toString()}`)
+            if (ingredientsFile || frontFile || nutritionFile || packagingFile){
+                formData.append("imagesFolder",`${data.product_name}-${Date.now().toString()}`)
+            }   
             if (ingredientsFile) {
                 formData.append("ingredients", ingredientsFile);
             }
@@ -360,7 +387,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
             if (nutritionFile) {
                 formData.append("nutrition", nutritionFile);
             }
-            
+            if (packagingFile) {
+                formData.append("packaging", packagingFile);
+            }
             //console.log(formData)
             api.post(submissionsURL, formData,{
                 withCredentials: true,
@@ -505,6 +534,14 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
         }
     };
 
+    const handlePackagingChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setPackagingFile(file);
+            setPackagingPreview(URL.createObjectURL(file));
+        }
+    };
+
     const clearIngredients = () => {
         setIngredientsFile(null);
         setIngredientsPreview(null);
@@ -518,6 +555,11 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
     const clearNutrition = () => {
         setNutritionFile(null);
         setNutritionPreview(null);
+    };
+
+    const clearPackaging = () => {
+        setPackagingFile(null);
+        setPackagingPreview(null);
     };
 
     const handleOpenImage = (link:string) => {
@@ -537,7 +579,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                 <Box 
                 sx={{
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: "row",
                     justifyContent: "center",
                     alignItems: "center",
                     maxWidth: "500px",
@@ -553,12 +595,19 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                     borderLeft: "5px solid",
                     borderRight: "5px solid",
                     borderColor: "secondary.main",
+                    color: "primary.contrastText",
                     boxSizing: "border-box"
                   }}
-                >
-                    <Typography variant='h5' width="100%" sx={{py:0.5}} color= "primary.contrastText">
-                        {submissionType==="edit"?<>Edición</>:<>Nuevo alimento</>}
-                    </Typography>
+                >   
+                    <Box sx={{display: "flex", flex: 1}}>
+                        <NavigateBack/>
+                    </Box>
+                    <Box sx={{display: "flex", flex: 4}}>
+                        <Typography variant='h6' width="100%"  color="primary.contrastText" sx={{py:1}}>
+                            {submissionType==="edit"?<>Edición</>:<>Nuevo alimento</>}
+                        </Typography>
+                    </Box>
+                    <Box sx={{display: "flex", flex: 1}}/>
                 </Box>
                 <Box
                 sx={{
@@ -586,17 +635,32 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         </Button>
                     </DialogActions>
                 </Dialog>
-                <Dialog open={subSent} onClose={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}>
+                <Dialog open={subSent} onClose={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}
+                   PaperProps={{
+                    sx: { 
+                      width: "100vw", 
+                      maxWidth: "800px", 
+                      margin: "auto"
+                    }
+                  }} 
+                >
                     <DialogTitle>
                         Aporte enviado
                     </DialogTitle>
                     <DialogContent>
-                        <Typography variant="subtitle1">
-                        Te avisaremos cuando sea aprobado o rechazado.
-                        </Typography>
+                        {
+                            isExpert 
+                                ?   <Typography variant="subtitle1">
+                                        La información del alimento ha sido actualizada.
+                                    </Typography>
+                                :   <Typography variant="subtitle1">
+                                        Te avisaremos cuando sea aprobado o rechazado.
+                                    </Typography>
+                        }
+                        
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}>
+                        <Button variant="contained" onClick={()=>submissionType==="new"? navigate("/home"):navigate(`/food/${id}`)}>
                             Ok
                         </Button>
 
@@ -759,13 +823,30 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         </Box>
 
                         <Dialog onClose={handleAllergensClose} open={allergensOpen}
-                        sx={{width: "100%", 
-                            maxWidth: "500px", 
-                            margin: "auto",
-                            height: "80%"
+                        PaperProps={{
+                            sx: { 
+                              width: "100vw", 
+                              maxWidth: "800px", 
+                              maxHeight: '80vh',
+                              margin: "auto"
+                            }
                         }}>
                             <DialogTitle>
-                                Selecciona un alérgeno
+                                <Box sx={{
+                                        display:"flex", 
+                                        justifyContent: "space-between",
+                                        
+                                    }}>
+                                        Selecciona un alérgeno
+                                        <IconButton
+                                        color="inherit"
+                                        onClick={handleAllergensClose}
+                                        sx={{p:0}}
+                                        >
+                                            <CloseIcon />
+                                        </IconButton>
+                                </Box>
+                                
                             </DialogTitle>
                             <DialogContent>
                                 <List sx={{ pt: 0 }}>
@@ -788,13 +869,30 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                         </Dialog>
 
                         <Dialog onClose={handleTracesClose} open={tracesOpen}
-                        sx={{width: "100%", 
-                            maxWidth: "500px", 
-                            margin: "auto",
-                            height: "80%"
+                        PaperProps={{
+                            sx: { 
+                              width: "100vw", 
+                              maxWidth: "800px", 
+                              maxHeight: '80vh',
+                              margin: "auto"
+                            }
                         }}>
                             <DialogTitle>
-                                Selecciona un alérgeno
+                                <Box sx={{
+                                        display:"flex", 
+                                        justifyContent: "space-between",
+                                        
+                                    }}>
+                                        Selecciona un alérgeno
+                                        <IconButton
+                                        color="inherit"
+                                        onClick={handleTracesClose}
+                                        sx={{p:0}}
+                                        >
+                                            <CloseIcon />
+                                        </IconButton>
+                                </Box>
+                                
                             </DialogTitle>
                             <DialogContent>
                                 <List sx={{ pt: 0 }}>
@@ -809,21 +907,32 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                     ))}
                                 </List>
                             </DialogContent>
-                            <DialogActions>
-                            <Button onClick={handleTracesClose} variant="contained">
-                                Cancelar
-                            </Button>
-                            </DialogActions>
                         </Dialog>
 
                         <Dialog onClose={handleAdditivesClose} open={additivesOpen}
-                        sx={{width: "100%", 
-                            maxWidth: "500px", 
-                            margin: "auto",
-                            height: "80%"
+                        PaperProps={{
+                            sx: { 
+                              width: "100vw", 
+                              maxWidth: "800px", 
+                              maxHeight: '80vh',
+                              margin: "auto"
+                            }
                         }}>
                             <DialogTitle>
-                                Selecciona un aditivo
+                                <Box sx={{
+                                        display:"flex", 
+                                        justifyContent: "space-between",
+                                        
+                                    }}>
+                                        Selecciona un aditivo
+                                        <IconButton
+                                        color="inherit"
+                                        onClick={handleAdditivesClose}
+                                        sx={{p:0}}
+                                        >
+                                            <CloseIcon />
+                                        </IconButton>
+                                </Box>
                                 
                             </DialogTitle>
                             <DialogContent>
@@ -851,9 +960,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 onKeyDown={handleKeyDown}
                                 sx={{ mb: 2 }} // Adds some spacing below the search box
                                 />
-                            <Button onClick={handleAdditivesClose} variant="contained">
-                                Cancelar
-                            </Button>
                             </DialogActions>
                         </Dialog>
                         <Snackbar
@@ -938,62 +1044,75 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                             display: "flex",
                             flexDirection: "row",
                             justifyContent: "space-between",
+                            flexWrap: "wrap",
                             width:"100%",
-                            my:2
+                            my:2,
+                            gap: 2
                         }}>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
-                                width:"100%"
+                                width:"100%",
+                                border: "5px solid",
+                                borderColor: "primary.dark"
                             }}>
-                                <Typography variant="subtitle1">
+                                <Typography variant="subtitle1" sx={{width: "100%", bgcolor: "primary.dark", pb: "5px", color: "primary.contrastText"}}>
                                     Ingredientes
                                 </Typography>
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleOpenImage(foodOldImages.ingredients)} 
-                                    style={{ 
-                                        background: "none", 
-                                        border: "none", 
-                                        padding: 0, 
-                                        cursor: "pointer" 
-                                    }} 
-                                    aria-label="Ver imágen"
-                                >
-                                    <img src={foodOldImages.ingredients}
-                                        alt="Sin imágen" 
-                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                />
-                                </button>
-                            </Box>
-                            
-                            <Box sx={{
+                                {
+                                    !ingredientsFile && 
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleOpenImage(foodOldImages.ingredients)} 
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
+                                        <img src={foodOldImages.ingredients}
+                                            alt="Sin imágen" 
+                                            style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                    />
+                                    </button>
+                                }
+                                
+                                <Box sx={{
                                 display: "flex",
                                 flexDirection: "column",
                                 alignItems: "center",
                                 width:"100%"
-                            }}>
-                                <Typography variant="subtitle1">
-                                    Frente
-                                </Typography>
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleOpenImage(foodOldImages.front)} 
-                                    style={{ 
-                                        background: "none", 
-                                        border: "none", 
-                                        padding: 0, 
-                                        cursor: "pointer" 
-                                    }} 
-                                    aria-label="Ver imágen"
-                                >
-                                    <img 
-                                        src={foodOldImages.front}
-                                        alt="Sin imágen"
-                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} 
-                                    />
-                                </button>
+                                }}>
+                                    
+                                    {ingredientsPreview && (<div>
+                                        <img src={ingredientsPreview} alt="Ingredientes" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
+                                        <Button onClick={clearIngredients}>
+                                            <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
+                                            <Typography variant="subtitle1">
+                                                Eliminar nueva imágen
+                                            </Typography>
+                                        </Button>
+                                        </div>
+                                    )}
+                                    {!ingredientsFile && (
+                                        <Button component="label">
+                                            
+                                            <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
+                                            <input
+                                                type="file"
+                                                hidden
+                                                accept="image/*"
+                                                onChange={handleIngredientsChange}
+                                            />
+                                            <Typography variant="subtitle1">
+                                                {foodOldImages.ingredients?<>Reemplazar imágen</>:<>Subir imágen</>}
+                                            </Typography>
+                                        </Button>
+                                    )}
+                                </Box>
                             </Box>
                             
                             <Box sx={{
@@ -1001,124 +1120,197 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean }> = ({ isAppBarVisible }) =
                                 flexDirection: "column",
                                 alignItems: "center",
                                 width:"100%",
+                                border: "5px solid",
+                                borderColor: "primary.dark",
                             }}>
-                                <Typography variant="subtitle1">
+                               <Typography variant="subtitle1" sx={{width: "100%", bgcolor: "primary.dark", pb: "5px", color: "primary.contrastText"}}>
+                                    Frente
+                                </Typography>
+                                {
+                                    !frontFile && 
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleOpenImage(foodOldImages.front)} 
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
+                                        <img src={foodOldImages.front}
+                                            alt="Sin imágen" 
+                                            style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                    />
+                                    </button>
+                                }
+                                
+                                <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%"
+                                }}>
+                                    
+                                    {frontPreview && (<div>
+                                        <img src={frontPreview} alt="Frente" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
+                                        <Button onClick={clearFront}>
+                                            <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
+                                            <Typography variant="subtitle1">
+                                                Eliminar nueva imágen
+                                            </Typography>
+                                        </Button>
+                                        </div>
+                                    )}
+                                    {!frontFile && (
+                                        <Button component="label">
+                                            
+                                            <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
+                                            <input
+                                                type="file"
+                                                hidden
+                                                accept="image/*"
+                                                onChange={handleFrontChange}
+                                            />
+                                            <Typography variant="subtitle1">
+                                                {foodOldImages.front?<>Reemplazar imágen</>:<>Subir imágen</>}
+                                            </Typography>
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Box>
+                            
+                            <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%",
+                                border: "5px solid",
+                                borderColor: "primary.dark"
+                            }}>
+                               <Typography variant="subtitle1" sx={{width: "100%", bgcolor: "primary.dark", pb: "5px", color: "primary.contrastText"}}>
                                     Nutrición
                                 </Typography>
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleOpenImage(foodOldImages.nutrition)} 
-                                    style={{ 
-                                        background: "none", 
-                                        border: "none", 
-                                        padding: 0, 
-                                        cursor: "pointer" 
-                                    }} 
-                                    aria-label="Ver imágen"
-                                >
-                                    <img src={foodOldImages.nutrition}
-                                        alt="Sin imágen" 
-                                        style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                        
-                                />
-                                </button>
-                            </Box>
-                            
-                        </Box>
-                        <Box sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            width:"100%",
-                            my:2
-                        }}>
-                            <Box sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                width:"100%"
-                            }}>
-                                <Typography variant="subtitle1">
-                                    Nueva imágen
-                                </Typography>
-                                {ingredientsPreview && (<div>
-                                    <img src={ingredientsPreview} alt="Ingredientes" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
-                                    <IconButton onClick={clearIngredients}>
-                                        <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
-                                    </IconButton>
-                                    </div>
-                                )}
-                                {!ingredientsFile && (
-                                    <IconButton component="label">
-                                        <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
-                                        <input
-                                            type="file"
-                                            hidden
-                                            accept="image/*"
-                                            onChange={handleIngredientsChange}
-                                        />
-                                    </IconButton>
-                                )}
-                            </Box>
-                            
-                            <Box sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                width:"100%"
-                            }}>
-                                <Typography variant="subtitle1">
-                                Nueva imágen
-                                </Typography>
-                                {frontPreview && (<div>
-                                    <img src={frontPreview} alt="Frente" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
-                                    <IconButton onClick={clearFront}>
-                                        <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
-                                    </IconButton>
-                                    </div>
-                                )}
-                                {!frontFile && (
-                                    <IconButton component="label">
-                                        <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
-                                        <input
-                                            type="file"
-                                            hidden
-                                            accept="image/*"
-                                            onChange={handleFrontChange}
-                                        />
-                                    </IconButton>
-                                )}
-                            </Box>
-                            
-                            <Box sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                width:"100%"
-                            }}>
-                                <Typography variant="subtitle1">
-                                Nueva imágen
-                                </Typography>
-                                {nutritionPreview && (<div>
-                                    <img src={nutritionPreview} alt="Nutrición" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
-                                    <IconButton onClick={clearNutrition}>
-                                        <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
-                                    </IconButton>
-                                    </div>
-                                )}
-                                {!nutritionFile && (
-                                    <IconButton component="label">
-                                        <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
-                                        <input
-                                            type="file"
-                                            hidden
-                                            accept="image/*"
-                                            onChange={handleNutritionChange}
-                                        />
-                                    </IconButton>
-                                )}
+                                {
+                                    !nutritionFile && 
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleOpenImage(foodOldImages.nutrition)} 
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
+                                        <img src={foodOldImages.nutrition}
+                                            alt="Sin imágen" 
+                                            style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                    />
+                                    </button>
+                                }
                                 
+                                <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%"
+                                }}>
+                                    
+                                    {nutritionPreview && (<div>
+                                        <img src={nutritionPreview} alt="Nutrición" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
+                                        <Button onClick={clearNutrition}>
+                                            <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
+                                            <Typography variant="subtitle1">
+                                                Eliminar nueva imágen
+                                            </Typography>
+                                        </Button>
+                                        </div>
+                                    )}
+                                    {!nutritionFile && (
+                                        <Button component="label">
+                                            
+                                            <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
+                                            <input
+                                                type="file"
+                                                hidden
+                                                accept="image/*"
+                                                onChange={handleNutritionChange}
+                                            />
+                                            <Typography variant="subtitle1">
+                                                {foodOldImages.nutrition?<>Reemplazar imágen</>:<>Subir imágen</>}
+                                            </Typography>
+                                        </Button>
+                                    )}
+                                </Box>
                             </Box>
+                            {/* <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%",
+                                border: "5px solid",
+                                borderColor: "primary.dark"
+                            }}>
+                                <Typography variant="subtitle1" sx={{width: "100%", bgcolor: "primary.dark", pb: "5px", color: "primary.contrastText"}}>
+                                    Envasado
+                                </Typography>
+                                {
+                                    !packagingFile && 
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleOpenImage(foodOldImages.packaging)} 
+                                        style={{ 
+                                            background: "none", 
+                                            border: "none", 
+                                            padding: 0, 
+                                            cursor: "pointer" 
+                                        }} 
+                                        aria-label="Ver imágen"
+                                    >
+                                        <img src={foodOldImages.packaging}
+                                            alt="Sin imágen" 
+                                            style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
+                                    />
+                                    </button>
+                                }
+                                
+                                <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                width:"100%"
+                                }}>
+                                    
+                                    {packagingPreview && (<div>
+                                        <img src={packagingPreview} alt="Envasado" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
+                                        <Button onClick={clearPackaging}>
+                                            <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
+                                            <Typography variant="subtitle1">
+                                                Eliminar nueva imágen
+                                            </Typography>
+                                        </Button>
+                                        </div>
+                                    )}
+                                    {!packagingFile && (
+                                        <Button component="label">
+                                            
+                                            <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
+                                            <input
+                                                type="file"
+                                                hidden
+                                                accept="image/*"
+                                                onChange={handlePackagingChange}
+                                            />
+                                            <Typography variant="subtitle1">
+                                                {foodOldImages.packaging?<>Reemplazar imágen</>:<>Subir imágen</>}
+                                            </Typography>
+                                        </Button>
+                                    )}
+                                </Box>
+                            </Box> */}
                             
                         </Box>
                         <Button 
