@@ -808,7 +808,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
                                         </Typography>
                                         </Box>
                                     :   <Box sx={{pl:2}}>
-                                        <Typography variant='subtitle1' color={selectedEdit.foodData?.product_name===currentFoodProfile?.foodData?.product_name?"primary.dark":"secondary.dark"}>
+                                        <Typography variant='subtitle1' color={selectedEdit.foodData?.id===currentFoodProfile?.foodData?.id?"primary.dark":"secondary.dark"}>
                                             <li><span style={{fontWeight: "bold"}}>Código: </span>{selectedEdit.foodData?.id}</li>
                                         </Typography>
                                         <Typography variant='subtitle1' color={selectedEdit.foodData?.product_name===currentFoodProfile?.foodData?.product_name?"primary.dark":"secondary.dark"}>

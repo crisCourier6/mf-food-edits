@@ -53,7 +53,7 @@ type FormValues = {
     nutrition_data_per: string;
   };
 
-const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert: boolean }> = ({ isAppBarVisible, isExpert=false }) => {
+const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ isAppBarVisible, isExpert }) => {
     const navigate = useNavigate()
     const { id } = useParams()
     const additivesURL = "/submissions-additives"
@@ -149,7 +149,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert: boolean }> = ({ i
 
     useEffect(() => {
         document.title = "Edición de alimento - EyesFood";
-        
         const fetchData = async () => {
             try {
                 const [allergensResponse, additivesResponse] = await Promise.all([
