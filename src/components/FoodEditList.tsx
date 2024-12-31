@@ -479,9 +479,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
         }}>
             {
                 !isSmallScreen && <>
-                    <GridToolbarColumnsButton/>
                     <GridToolbarFilterButton/>
-                    <GridToolbarDensitySelector/>
                     <GridToolbarExport />
                 </>
             }
@@ -593,7 +591,8 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
                     >
                         <DialogTitle>Borrar aporte</DialogTitle>
                         <DialogContent>
-                            ¿Seguro que desea borrar este aporte?
+                            ¿Seguro que desea borrar este aporte? Esto significa perder una entrada del historial de ediciones de este alimento. UTILIZAR ESTA FUNCIÓN CON
+                            EXTREMO CUIDADO.
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setOpenDeleteDialog(false)} color="primary">
