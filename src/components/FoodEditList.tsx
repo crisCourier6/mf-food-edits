@@ -294,9 +294,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
 
     const handleEdit = (edit: any) => {
         setSelectedEdit(edit);
-        if (edit.foodLocal){
-            setCurrentFoodProfile(edit.foodLocal)
-        }
         setNewNutrition([
             { label: "Energía (kcal)", value: edit.foodData.nutriment_energy || "" },
             { label: "Proteínas (g)", value: edit.foodData.nutriment_proteins || "" },
@@ -309,80 +306,84 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
             { label: "H. de C. Disp. (g)", value: edit.foodData.nutriment_carbohydrates || "" },
             { label: "Azúcares totales (g)", value: edit.foodData.nutriment_sugars || "" },
             { label: "Sodio (mg)", value: edit.foodData.nutriment_sodium || "" },
-          ])  
-        setOldNutrition([
-            { label: "Energía (kcal)", value: edit.foodLocal.foodData.nutriments["energy-kcal_100g"] || "" },
-            { label: "Proteínas (g)", value: edit.foodLocal.foodData.nutriments.proteins_100g || "" },
-            { label: "Grasa total (g)", value: edit.foodLocal.foodData.nutriments.fat_100g || "" },
-            { label: "G. Saturadas (g)", value: edit.foodLocal.foodData.nutriments["saturated-fat_100g"] || "" },
-            { label: "G. Monoinsat. (g)", value: edit.foodLocal.foodData.nutriments["monounsaturated-fat_100g"] || "" },
-            { label: "G. Poliinsat. (g)", value: edit.foodLocal.foodData.nutriments["polyunsaturated-fat_100g"] || "" },
-            { label: "G. Trans (g)", value: edit.foodLocal.foodData.nutriments["trans-fat_100g"] || "" },
-            { label: "Colesterol (mg)", value: edit.foodLocal.foodData.nutriments["cholesterol_value"] || "" },
-            { label: "H. de C. Disp. (g)", value: edit.foodLocal.foodData.nutriments["carbohydrates_100g"] || "" },
-            { label: "Azúcares totales (g)", value: edit.foodLocal.foodData.nutriments["sugars_100g"] || "" },
-            { label: "Sodio (mg)", value: edit.foodLocal.foodData.nutriments["sodium_value"] || "" },
-          ])  
+        ])  
+        
         const newAllergensTags = edit.foodData.allergens?.split(", ").map((tagId: string) => 
             allergensAll.find(allergen => allergen.id === tagId)
         ).filter(Boolean) as Allergen[]; // Filter out any undefined results
-        const oldAllergensTags = edit.foodLocal.foodHasAllergen
-            ?.filter((oldAllergen: FoodHasAllergen) => oldAllergen.isAllergen)
-            .map((oldAllergen: FoodHasAllergen) => oldAllergen.allergen) || [];
-
+  
         const newTracesTags = edit.foodData.traces?.split(", ").map((tagId: string) => 
             allergensAll.find(allergen => allergen.id === tagId)
         ).filter(Boolean) as Allergen[]; // Filter out any undefined results
-        const oldTracesTags = edit.foodLocal.foodHasAllergen
-            ?.filter((oldTrace: FoodHasAllergen) => oldTrace.isTrace)
-            .map((oldTrace: FoodHasAllergen) => oldTrace.allergen) || [];
-
 
         const newAdditivesTags = edit.foodData.additives?.split(", ").map((tagId: string) => 
             additivesAll.find(additive=> additive.id === tagId)
         ).filter(Boolean) as Additive[]; // Filter out any undefined results
-        const oldAdditivesTags = edit.foodLocal.foodHasAdditive?.map((oldAdditive:FoodHasAdditive)=> oldAdditive.additive)
 
-        let images = {
-            ingredients: "Sin imágen",
-            packaging: "Sin imágen",
-            nutrition: "Sin imágen",
-            front: "Sin imágen"
+        if (edit.type === "edit"){
+            setCurrentFoodProfile(edit.foodLocal)
+            setOldNutrition([
+                { label: "Energía (kcal)", value: edit.foodLocal.foodData.nutriments["energy-kcal_100g"] || "" },
+                { label: "Proteínas (g)", value: edit.foodLocal.foodData.nutriments.proteins_100g || "" },
+                { label: "Grasa total (g)", value: edit.foodLocal.foodData.nutriments.fat_100g || "" },
+                { label: "G. Saturadas (g)", value: edit.foodLocal.foodData.nutriments["saturated-fat_100g"] || "" },
+                { label: "G. Monoinsat. (g)", value: edit.foodLocal.foodData.nutriments["monounsaturated-fat_100g"] || "" },
+                { label: "G. Poliinsat. (g)", value: edit.foodLocal.foodData.nutriments["polyunsaturated-fat_100g"] || "" },
+                { label: "G. Trans (g)", value: edit.foodLocal.foodData.nutriments["trans-fat_100g"] || "" },
+                { label: "Colesterol (mg)", value: edit.foodLocal.foodData.nutriments["cholesterol_value"] || "" },
+                { label: "H. de C. Disp. (g)", value: edit.foodLocal.foodData.nutriments["carbohydrates_100g"] || "" },
+                { label: "Azúcares totales (g)", value: edit.foodLocal.foodData.nutriments["sugars_100g"] || "" },
+                { label: "Sodio (mg)", value: edit.foodLocal.foodData.nutriments["sodium_value"] || "" },
+            ])  
+            const oldAllergensTags = edit.foodLocal.foodHasAllergen
+                ?.filter((oldAllergen: FoodHasAllergen) => oldAllergen.isAllergen)
+                .map((oldAllergen: FoodHasAllergen) => oldAllergen.allergen) || [];
+            
+            const oldTracesTags = edit.foodLocal.foodHasAllergen
+                ?.filter((oldTrace: FoodHasAllergen) => oldTrace.isTrace)
+                .map((oldTrace: FoodHasAllergen) => oldTrace.allergen) || [];
+            
+            const oldAdditivesTags = edit.foodLocal.foodHasAdditive?.map((oldAdditive:FoodHasAdditive)=> oldAdditive.additive)
+            let images = {
+                ingredients: "Sin imágen",
+                packaging: "Sin imágen",
+                nutrition: "Sin imágen",
+                front: "Sin imágen"
+            }
+            if (edit.foodLocal.foodData.selected_images){
+                edit.foodLocal.foodData.selected_images.front?.display
+                    ? images.front = edit.foodLocal.foodData.selected_images.front.display.es
+                                        || edit.foodLocal.foodData.selected_images.front.display.en 
+                                        || edit.foodLocal.foodData.selected_images.front.display.fr 
+                                        || "noPhoto" 
+                    : images.front = "noPhoto"
+                edit.foodLocal.foodData.selected_images.nutrition?.display
+                ? images.nutrition = edit.foodLocal.foodData.selected_images.nutrition.display.es
+                            || edit.foodLocal.foodData.selected_images.nutrition.display.en 
+                            || edit.foodLocal.foodData.selected_images.nutrition.display.fr 
+                            || "noPhoto" 
+                : images.nutrition = "noPhoto"
+                edit.foodLocal.foodData.selected_images.packaging?.display
+                ? images.packaging = edit.foodLocal.foodData.selected_images.packaging.display.es
+                            || edit.foodLocal.foodData.selected_images.packaging.display.en 
+                            || edit.foodLocal.foodData.selected_images.packaging.display.fr 
+                            || "noPhoto" 
+                : images.packaging = "noPhoto"
+                edit.foodLocal.foodData.selected_images.ingredients?.display
+                ? images.ingredients = edit.foodLocal.foodData.selected_images.ingredients.display.es
+                            || edit.foodLocal.foodData.selected_images.ingredients.display.en 
+                            || edit.foodLocal.foodData.selected_images.ingredients.display.fr 
+                            || "noPhoto" 
+                : images.ingredients = "noPhoto"
+            }
+            setOldImages(images)
+            setOldAllergensTags((oldAllergensTags || []).sort((a:Allergen, b:Allergen) => a.name.localeCompare(b.name)));
+            setOldTracesTags((oldTracesTags || []).sort((a:Allergen, b:Allergen) => a.name.localeCompare(b.name)));
+            setOldAdditivesTags((oldAdditivesTags || []).sort((a:Additive, b: Additive) => a.name.localeCompare(b.name)));
         }
-        if (edit.foodLocal.foodData.selected_images){
-            edit.foodLocal.foodData.selected_images.front?.display
-                ? images.front = edit.foodLocal.foodData.selected_images.front.display.es
-                                    || edit.foodLocal.foodData.selected_images.front.display.en 
-                                    || edit.foodLocal.foodData.selected_images.front.display.fr 
-                                    || "noPhoto" 
-                : images.front = "noPhoto"
-            edit.foodLocal.foodData.selected_images.nutrition?.display
-            ? images.nutrition = edit.foodLocal.foodData.selected_images.nutrition.display.es
-                        || edit.foodLocal.foodData.selected_images.nutrition.display.en 
-                        || edit.foodLocal.foodData.selected_images.nutrition.display.fr 
-                        || "noPhoto" 
-            : images.nutrition = "noPhoto"
-            edit.foodLocal.foodData.selected_images.packaging?.display
-            ? images.packaging = edit.foodLocal.foodData.selected_images.packaging.display.es
-                        || edit.foodLocal.foodData.selected_images.packaging.display.en 
-                        || edit.foodLocal.foodData.selected_images.packaging.display.fr 
-                        || "noPhoto" 
-            : images.packaging = "noPhoto"
-            edit.foodLocal.foodData.selected_images.ingredients?.display
-            ? images.ingredients = edit.foodLocal.foodData.selected_images.ingredients.display.es
-                        || edit.foodLocal.foodData.selected_images.ingredients.display.en 
-                        || edit.foodLocal.foodData.selected_images.ingredients.display.fr 
-                        || "noPhoto" 
-            : images.ingredients = "noPhoto"
-        }
-
-        setOldImages(images)
         setNewAllergensTags((newAllergensTags || []).sort((a, b) => a.name.localeCompare(b.name)));
-        setOldAllergensTags((oldAllergensTags || []).sort((a:Allergen, b:Allergen) => a.name.localeCompare(b.name)));
         setNewTracesTags((newTracesTags || []).sort((a, b) => a.name.localeCompare(b.name)));
-        setOldTracesTags((oldTracesTags || []).sort((a:Allergen, b:Allergen) => a.name.localeCompare(b.name)));
         setNewAdditivesTags((newAdditivesTags || []).sort((a, b) => a.name.localeCompare(b.name)));
-        setOldAdditivesTags((oldAdditivesTags || []).sort((a:Additive, b: Additive) => a.name.localeCompare(b.name)));
         setOpenEditDialog(true);
     };
 
@@ -715,7 +716,7 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
                                 <Box sx={{display: "flex", flexDirection: "column", justifyContent: "flex-start"}}>
                                     {selectedEdit.state==="pending"?<> Evaluar aporte </>: selectedEdit.state==="rejected"?<>Aporte rechazado</>:<>Aporte aceptado</>}
                                     {
-                                        selectedEdit.state==="pending" &&
+                                        selectedEdit.state==="pending" && selectedEdit.type==="edit" &&
                                         <Typography variant="subtitle1" sx={{pt:1, color: "secondary.main"}}>
                                             Datos en color verde son información nueva o editada
                                         </Typography>
@@ -760,8 +761,9 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
 
                                 }} 
                                 >
-                                
-                                <RadioGroup
+                                {
+                                    selectedEdit.type==="edit" &&
+                                    <RadioGroup
                                     row
                                     value={showOldInfo ? "old" : "new"} // Sets the selected value
                                     onChange={(e) => handleSwitchChange(e.target.value === "old")} // Passes boolean to your handler
@@ -777,8 +779,9 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
                                         label={<Typography variant="subtitle1" sx={{ textDecoration: "underline" }}>Ver perfil de alimento actual</Typography>} 
                                     />
                                 </RadioGroup>
+                                }
+                               
                             </Box>
-                              
                             </>
                             }       
                             <Typography variant='h6' sx={{my: 1}}>
