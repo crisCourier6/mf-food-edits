@@ -2,16 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Button, Box, Alert, Grid, Dialog, DialogContent, DialogActions, TextField, Snackbar, IconButton, 
     Typography, DialogTitle, Tooltip, Chip, Divider, CircularProgress, TableContainer, Table, TableHead, 
     TableRow, TableCell, TableBody, Paper,
-    Checkbox,
     RadioGroup,
     FormControlLabel,
     Radio,
     useMediaQuery} from '@mui/material';
 import api from "../api";
-import { DataGrid, GridColDef, GridFilterModel, GridRenderCellParams, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton } from "@mui/x-data-grid"
+import { DataGrid, GridColDef, GridFilterModel, GridRenderCellParams, GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton } from "@mui/x-data-grid"
 import { esES } from '@mui/x-data-grid/locales';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
-import EditIcon from '@mui/icons-material/Edit';
 import Visibility from "@mui/icons-material/Visibility"
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import NoPhoto from "../../public/no-photo.png"
