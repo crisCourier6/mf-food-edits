@@ -30,8 +30,8 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
     const editsURL = "/submissions"
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
-    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
-    const currentUserId = window.sessionStorage.getItem("id") || window.localStorage.getItem("id")
+    const token = window.sessionStorage.getItem("token") ?? window.localStorage.getItem("token")
+    const currentUserId = window.sessionStorage.getItem("id") ?? window.localStorage.getItem("id")
     const imagesURL = process.env.REACT_APP_IMAGES_URL
     const [edits, setEdits] = useState<UserEditsFood[]>([])
     const [filteredEdits, setFilteredEdits] = useState<UserEditsFood[]>([])

@@ -11,7 +11,7 @@ type Additive = { id: string; name: string};
 
 const FoodEditUserList: React.FC<{isAppBarVisible:boolean}> = ({ isAppBarVisible }) => {
     const { id } = useParams()
-    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
+    const token = window.sessionStorage.getItem("token") ?? window.localStorage.getItem("token")
     const [foodEditAll, setFoodEditAll] = useState<UserEditsFood[]>([])
     const [selectedEdit, setSelectedEdit] = useState<UserEditsFood|null>(null);
     const [showEdit, setShowEdit] = useState(false)

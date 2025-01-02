@@ -60,8 +60,8 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
     const allergensURL = "/submissions-allergens"
     const foodURL = "/submissions-food"
     const submissionsURL = "/submissions"
-    const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
-    const currentUserId = window.sessionStorage.getItem("id") || window.localStorage.getItem("id")
+    const token = window.sessionStorage.getItem("token") ?? window.localStorage.getItem("token")
+    const currentUserId = window.sessionStorage.getItem("id") ?? window.localStorage.getItem("id")
     const [allergensAll, setAllergensAll] = useState<Allergen[]>([])
     const [allergensTags, setAllergensTags] = useState<Allergen[]>([])
     const [additivesAll, setAdditivesAll] = useState<Additive[]>([])
@@ -1237,72 +1237,6 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                                     )}
                                 </Box>
                             </Box>
-                            {/* <Box sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                width:"100%",
-                                border: "5px solid",
-                                borderColor: "primary.dark"
-                            }}>
-                                <Typography variant="subtitle1" sx={{width: "100%", bgcolor: "primary.dark", pb: "5px", color: "primary.contrastText"}}>
-                                    Envasado
-                                </Typography>
-                                {
-                                    !packagingFile && 
-                                    <button 
-                                        type="button" 
-                                        onClick={() => handleOpenImage(foodOldImages.packaging)} 
-                                        style={{ 
-                                            background: "none", 
-                                            border: "none", 
-                                            padding: 0, 
-                                            cursor: "pointer" 
-                                        }} 
-                                        aria-label="Ver imágen"
-                                    >
-                                        <img src={foodOldImages.packaging}
-                                            alt="Sin imágen" 
-                                            style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10, cursor: "pointer" }} 
-                                    />
-                                    </button>
-                                }
-                                
-                                <Box sx={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                width:"100%"
-                                }}>
-                                    
-                                    {packagingPreview && (<div>
-                                        <img src={packagingPreview} alt="Envasado" style={{ height: "auto", width: "95%", objectFit: 'cover', marginTop: 10 }} />
-                                        <Button onClick={clearPackaging}>
-                                            <DeleteForeverRoundedIcon sx={{color: "error.main", height: "32px", width: "32px"}}/>
-                                            <Typography variant="subtitle1">
-                                                Eliminar nueva imágen
-                                            </Typography>
-                                        </Button>
-                                        </div>
-                                    )}
-                                    {!packagingFile && (
-                                        <Button component="label">
-                                            
-                                            <AddAPhotoRoundedIcon sx={{color: "secondary.dark", height: "32px", width: "32px"}}/>
-                                            <input
-                                                type="file"
-                                                hidden
-                                                accept="image/*"
-                                                onChange={handlePackagingChange}
-                                            />
-                                            <Typography variant="subtitle1">
-                                                {foodOldImages.packaging?<>Reemplazar imágen</>:<>Subir imágen</>}
-                                            </Typography>
-                                        </Button>
-                                    )}
-                                </Box>
-                            </Box> */}
-                            
                         </Box>
                         <Button 
                             variant="contained" 
