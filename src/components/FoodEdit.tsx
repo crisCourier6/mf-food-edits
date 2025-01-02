@@ -17,6 +17,7 @@ import { Additive } from "../interfaces/additive";
 import CloseIcon from '@mui/icons-material/Close';
 import { FoodHasAllergen } from "../interfaces/foodHasAllergen";
 import { FoodHasAdditive } from "../interfaces/foodHasAdditive";
+import InfoIcon from '@mui/icons-material/Info';
 
 type FormValues = {
     id: string | undefined;
@@ -671,6 +672,10 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                     </DialogActions>
                 </Dialog>
                     <form onSubmit={handleSubmit(onSubmit)} noValidate encType="multipart/form-data">
+                    <Typography variant="subtitle1" textAlign={"left"} sx={{py:1, display: "flex", alignItems: "center", gap:1}} >
+                        <InfoIcon fontSize="medium" sx={{color: "primary.main"}}/>
+                        Recuerda presionar el botón "Guardar Cambios" al fondo de la página cuando estés listo.
+                    </Typography>
                         <TextField 
                         id="id"
                         label="Código" 
