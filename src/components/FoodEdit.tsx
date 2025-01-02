@@ -94,6 +94,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
     const [allDone, setAllDone] = useState(false)
     const [showNew, setShowNew] = useState(false)
     const [subSent, setSubSent] = useState(false)
+    const [error, setError] = useState(false)
     const usedAllergens = ["en:gluten", "en:milk", "en:eggs", "en:nuts", "en:peanuts", "en:sesame-seeds", 
         "en:soybeans", "en:celery", "en:mustard", "en:lupin", "en:fish", "en:crustaceans", 
         "en:molluscs", "en:sulphur-dioxide-and-sulphites"
@@ -172,6 +173,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                 setAdditivesAll(additivesResponse.data);
             } catch (error) {
                 console.error("Error fetching allergens/additives:", error);
+                setError(true)
             }
         };
         
@@ -289,6 +291,7 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                     setAdditivesTags(initialAdditivesTags || [])
                 }) 
                 .catch(error => {
+                    setError(true)
                     console.log(error)
                 })
                 .finally(()=>{
@@ -567,6 +570,16 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                 alignItems="stretch"
                 sx={{width: "100vw", maxWidth:"500px", gap:"5px", flexWrap: "wrap", pb: 7}}
             >
+            {
+                error ? <Box sx={{width: "100%", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                <Typography variant='h6' sx={{pt:1}}>
+                    Ocurrió un problema
+                </Typography>
+                <Typography variant='subtitle1'>
+                    OpenFoodFacts no responde, prueba más tarde.
+                </Typography>
+            </Box>
+            : <>
                 <Box 
                 sx={{
                     display: "flex",
@@ -1277,8 +1290,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                         </Snackbar>
                     </form>
                 </Box>
-                
-            
+            </>
+            }
+
             </Grid>
     )
 }
