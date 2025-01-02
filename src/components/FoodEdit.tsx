@@ -198,17 +198,9 @@ const FoodEdit: React.FC<{ isAppBarVisible: boolean, isExpert?: boolean }> = ({ 
                 .then((response)=>{
                     let food = response.data.foodData
                     form.reset(food)
-                    // setValue("id", food.id || "");
-                    // setValue("product_name", food.product_name || "");
-                    // setValue("quantity", food.quantity || "");
-                    // setValue("brands", food.brands || "");
                     setValue("ingredients_text_es", food.ingredients_text || "");
                     setValue("nutriment_cholesterol_unit", "mg")
                     setValue("nutriment_sodium_unit", "mg")
-                    // setValue("serving_size", food.serving_size || "");
-                    // setValue("allergens", food.allergens_tags.join(", ") || "")
-                    // setValue("traces", food.traces_tags.join(", ") || "")
-                    // setValue("additives", food.additives_tags.join(", ") || "")
                     let oldImages = {front: "", ingredients: "", nutrition: "", packaging: ""}
                     if(food.selected_images){
                         food.selected_images.front?.display

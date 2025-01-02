@@ -30,7 +30,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
     const editsURL = "/submissions"
     const additivesURL = "/submissions-additives"
     const allergensURL = "/submissions-allergens"
-    const foodURL = "/submissions-food"
     const token = window.sessionStorage.getItem("token") || window.localStorage.getItem("token")
     const currentUserId = window.sessionStorage.getItem("id") || window.localStorage.getItem("id")
     const imagesURL = process.env.REACT_APP_IMAGES_URL
@@ -414,14 +413,13 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
     const handleStateChange = async (id:string, newState: string, rejectReason?: string) => {
         setProcessingRequest(true)
         try {
-            const formData = new FormData();
             const change = {
                 ...selectedEdit,
                 state: newState,
                 rejectReason: rejectReason,
                 idJudge: currentUserId,
             }
-            let res = await api.post(`${editsURL}/${id}/evaluate`,
+            await api.post(`${editsURL}/${id}/evaluate`,
                 change,
                 {
                     withCredentials: true,
@@ -744,7 +742,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
 
                             {
                               selectedEdit.state === "pending" && 
-                              <>
                                 <Box sx={{
                                      display: "flex",
                                      alignItems: "center",
@@ -780,7 +777,6 @@ const FoodEditList: React.FC<{isAppBarVisible:boolean, onPendingCountChange:(cou
                                 }
                                
                             </Box>
-                            </>
                             }       
                             <Typography variant='h6' sx={{my: 1}}>
                                 Información general
